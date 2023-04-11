@@ -48,6 +48,7 @@ end
 
 function CalculateClasicItemScore_two(ItemLink, Tooltip, Red, Green, Blue)
 	local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
+	if not GS_ItemTypes[ItemEquipLoc] then return end
 	local Class, englishClass = UnitClass("player")
 	local SumOfStats = 0
 	local GS_TempBonuses = BonusScanner:ScanItem(ItemLink)
@@ -68,6 +69,7 @@ function CalculateClasicItemScore(ItemLink, Tooltip, Red, Green, Blue)
 		local Class, englishClass = GS_Settings["CurrentClassMouseoverItem"]; local ShowSpecScores = true
 		if not Class then Class, englishClass = UnitClass("player"); Class = englishClass; ShowSpecScores = false; end; --if englishClass then Class = englishClass; end
 		local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
+		if not GS_ItemTypes[ItemEquipLoc] then return end
 		for j,w in ipairs(GearScoreClassSpecList[Class]) do
 			if ( GS_Settings["ShowSpecScores"][GearScoreClassSpecList[Class][j]] == 1 ) or ( ShowSpecScores ) then
 				local GearScore = Calculate_GearScoreClasicScore(ItemLink, Class, j)
