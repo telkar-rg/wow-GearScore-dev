@@ -394,6 +394,8 @@ GS_ItemTypes = {
 }
 
 GS_DefaultSettings = {
+	["TmogFix"] = 1,
+	
 	["KeepFaction"] = -1,
 	["Player"] = 1,
 	["Item"] = 1,

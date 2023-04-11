@@ -1337,6 +1337,33 @@
 						<Offset x="61" y="-103" />
 					</Anchor>
 				</Anchors>
+			</CheckButton>	
+			
+			
+			<CheckButton name="GS_TmogFixCheck" inherits="UICheckButtonTemplate" text="CheckButton101">
+				<Scripts>
+					<OnEnter>
+						GameTooltip:SetOwner(GS_TmogFixCheck, "ANCHOR_Right")
+						GameTooltip:ClearLines(); 
+						GameTooltip:AddLine("Transmog Fix",1,1,1); 
+						GameTooltip:AddLine("Ignore any Players wearing gear"); 
+						GameTooltip:AddLine("of iLvl below 200.");
+						GameTooltip:AddLine("This should filter out most of");
+						GameTooltip:AddLine("the Transmog gear false detections.");
+						GameTooltip:Show()
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>											
+				</Scripts>			
+				<Size>
+					<AbsDimension x="20" y="20" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="61" y="-200" />
+					</Anchor>
+				</Anchors>
 			</CheckButton>		
 
 
@@ -1556,7 +1583,21 @@
 							<Offset x="93" y="-103" />
 						</Anchor>
 					</Anchors>
-				</FontString>				
+				</FontString>	
+				
+				
+				<FontString name="GS_TmogFixText" inherits="GameFontNormal" text="Transmog Fix" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="264" y="20" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset x="93" y="-200" />
+						</Anchor>
+					</Anchors>
+				</FontString>
+				
+				
 				<FontString name="GS_FontString14" inherits="GameFontNormalLarge" text="Masterloot Options" justifyH="RIGHT">
 					<Size>
 						<AbsDimension x="174" y="20" />
