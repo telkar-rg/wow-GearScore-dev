@@ -2,33 +2,27 @@
 
 -------------------------------------------------------------------------------
 --                              GearScore                                    --
---                            Version 3.1.15                                 --
+--                            Version 3.1.17                                 --
 --								Mirrikat45                                   --
 -------------------------------------------------------------------------------
 
---ChangeLog
---Pressing "ESC" will now close GearScore windows.
---Tanking DKs that DW will no longer be nerfed points.
---DPS Specs for DKs will be labeled as such to reduce confusion.
---BonusScanner will now properly read DK Defense Runes.
---SpecScores will now be labeled as such to reduce confusion.
---Coloring for Exp bars is improved.
---Removed specific naming from Update Notifications.
---Made update notifications less annoying/nagging.
---Now includes options to turn of SpecScores, or to only display selected SpecScores.
---Note: When using the GS Profile screen on another player it will still show that player's class' SpecScores.
---Improve Compatibility when using "/gs <name>" when the name contains a special ASCII character.
---Updated Welcome message to notify players that they can use /gs for advanced features.
---Fixed a bug in the Recount Module that effectively doubled memory usage of Recount.
---At the persistant requests of users I have added both a Damage Done / GearScore and a Healing Done / GearScore.
---All Recount Modes involving GearScore will now correctly list all items a player has on mouse-over.
---GearScore will no longer subtract SpecScore or show the stats as negative for +10 Stat enchant / gems.
---Addon should no longer crash when running non US-Localizations.
---Should reduce the amount of FPS drop when holding shift to compare two item links.
---When no target is present on Exp tab the message "No Target" will be dispalyed on XP bars to reduce confusion.
---Addon will now correctly give update notification. Notification only occurs onces per session.
---Test versions of GearScore will not broadcast version info, but will be able to recieve it.
-
+-- Fixed a bug where you would see a target's equipment on mouseover instead of the intended player.
+-- Fixed a bug where you couldn't see the Helm, Neck, Shoulders, and Back equipment of a player in the GS window.
+-- Fixed a bug where "/gs <name>" would not work when the XP or Options frames were visible.
+-- Fixed a similar bug when targeting a player with the options window open.
+-- On the GS Window, GearScore will now display as "Raw GearScore".
+-- I am still finding a large number of players who dont know about the /gs screen. I have added a message on the tooltip informing them of the /gs option. You can disable this message by visiting the options and unchecking the box.
+-- THe new Show Help/Tips option will also enable/disable a few additional tooltips.
+-- The Minimum Level option for the Database will now correctly set.
+-- GearScore will no longer automatically update on mouseover. You must target a player to capture a new updated Score. While mousing over a player you will see a "*" next to the word "GearScore" to remind you that the info may be out of date.
+-- Upgraded the DATE tooltip system. The tooltip will now show when the player was last scanned in the format "*Scanned X min/hour/days ago.".
+-- The Date tooltip system is now on by default.
+-- The Date tooltip system can now be turned on/off in the options menu.
+-- New API for the Date system. For addon authors who use GearScore. You can now call:   GearScore_GetAge(ScanDate) - ScanDate should be the timestamp the player was scanned on. Timestamp is in teh format of  YYYYMMDDHHMM. Example: "December 28, 2010 at 12:45pm" is 200812281245.
+-- This function returns: Message, Red, Green, Blue, Quantity, Scale. Message is the message shown on the tooltip such as "*Scanned 8 hours ago". Red, Green, and Blue return the color code for that message. Quantity is the amount of difference. For the previous example of 8 hours, Quantity would be returned as 8. Scale lets you know what the 8 represents. It will be either "minutes", "hours", "days", or "months".
+-- Most functions of GearScore are disabled while in combat to prevent any lag or unwanted effects. I have decided to enable a function that requires manual operation to work.
+-- If you're using the /gs window and target another player then the window will update for that player even if your in combat. However the addon will not inspect to request new information if your in combat. Mostly this will allow players to check gear/stats/expereince on a raid member while clearing trash.
+-- Added Halion 10/25 to MISC group of the EXP tab.
 
 ------------------------------------------------------------------------------
 function GearScore_OnUpdate(self, elapsed)
@@ -40,7 +34,6 @@ function GearScore_OnUpdate(self, elapsed)
 		self:Hide()
   		GearScore_ContinueExchange()
 	end
-
 end
 
 function GearScore_ThrottleUpdate(self, elapsed)
@@ -103,13 +96,15 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
     	PersonalGearScore:SetText(GS_Data[GetRealmName()].Players[UnitName("player")].GearScore); PersonalGearScore:SetTextColor(Red, Green, Blue, 1)
   	end
 	if ( GS_EventName == "PLAYER_TARGET_CHANGED" ) then
-		if UnitName("target") then 		 GS_Data[GetRealmName()]["CurrentPlayer"] = {}; end
+		if UnitName("target") then 	GS_Data[GetRealmName()]["CurrentPlayer"] = {}; end
 		if ( GS_DisplayFrame:IsVisible() ) then
-			if UnitName("target") and not ( GS_PlayerIsInCombat ) then  
+			if UnitName("target") then  
 				if CanInspect("target") then NotifyInspect("target"); GearScore_GetScore(UnitName("target"), "target"); end
-				ClearAchievementComparisonUnit(); SetAchievementComparisonUnit("target")				
-				GearScore_DisplayUnit(UnitName("target"), 1); 
-				GS_ExPFrameUpdateCounter = 0	
+				--ClearAchievementComparisonUnit(); SetAchievementComparisonUnit("target")				
+				--GearScore_DisplayUnit(UnitName("target"), 1); 
+				
+				GS_ExPFrameUpdateCounter = 0;
+				GS_SCANSET(UnitName("target"));
 			end			
 		end
 			GS_Data["CurrentTarget"] = {}
@@ -174,11 +169,11 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
       		if not ( GS_Settings ) then	GS_Settings = GS_DefaultSettings; GS_Talent = {}; GS_TimeStamp = {}; end
 			GS_PVP = {}; GS_EquipTBL = {}; GS_Bonuses = {}; GS_Timer = {}; GS_Request = {}; GS_Average = {}
 			if not ( GS_Data ) then GS_Data = {}; end; if not ( GS_Data[GetRealmName()] ) then GS_Data[GetRealmName()] = { ["Players"] = {} }; end
-  			GS_Settings["Developer"] = 0; GS_VersionNum = 30115; GS_Settings["OldVer"] = GS_VersionNum
+  			GS_Settings["Developer"] = 0; GS_VersionNum = 30117; GS_Settings["OldVer"] = GS_VersionNum
   			for i, v in pairs(GS_DefaultSettings) do if not ( GS_Settings[i] ) then GS_Settings[i] = GS_DefaultSettings[i]; end; end
   			if ( GS_Settings["AutoPrune"] == 1 ) then GearScore_Prune(); end
-			if ( GS_Settings["Developer"] == 0 ) then print("Welcome to GearScore 3.1.15. Target a player and type /gs for new advanced features."); end
-			if ( GS_Settings["Developer"] == 1 ) then print("Welcome to GearScore 3.1.15. This is a test version. Please provide feedback at www.GearScoreAddon.com"); end
+			if ( GS_Settings["Developer"] == 0 ) then print("Welcome to GearScore 3.1.17. Type /gs to visit options and turn off help."); end
+			if ( GS_Settings["Developer"] == 1 ) then print("Welcome to GearScore 3.1.17. This is a test version. Please provide feedback at www.GearScoreAddon.com"); end
   			if ( GS_Settings["Restrict"] == 1 ) then GearScore_SetNone(); end
   			if ( GS_Settings["Restrict"] == 2 ) then GearScore_SetLight(); end
   			if ( GS_Settings["Restrict"] == 3 ) then GearScore_SetHeavy(); end
@@ -190,7 +185,7 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
             local f = CreateFrame("Frame", "GearScoreRecountErrorFrame", UIParent);
             f:CreateFontString("GearScoreRecountWarning")
 			f:SetFrameStrata("TOOLTIP")
-			local s = GearScoreRecountWarning; s:SetFont("Fonts\\FRIZQT__.TTF", 30); s:SetText("WARNING! GearScoreRecount MUST be disabled to use GearScore. 3.1.10")
+			local s = GearScoreRecountWarning; s:SetFont("Fonts\\FRIZQT__.TTF", 30); s:SetText("WARNING! GearScoreRecount MUST be disabled to use GearScore. 3.1.x")
 			s:SetPoint("BOTTOMLEFT",UIParent,"CENTER",-600,200)
 			s:Show();f:Show()
 			print("WARNING! GearScoreRecount MUST be disabled to use GearScore. Please turn it off or remove it from your addons folder, Sorry for the inconvience")
@@ -243,11 +238,15 @@ function GearScore_GetItemCode(ItemLink)
 	if not ( ItemLink ) then return nil; end
 	local found, _, ItemString = string.find(ItemLink, "^|c%x+|H(.+)|h%[.*%]"); local Table = {}
 	for v in string.gmatch(ItemString, "[^:]+") do tinsert(Table, v); end
+	local item, enchant, gem1,gem2,gem3 = Table[2], Table[3], Table[4], Table[5], Table[6]
 	return Table[2]..":"..Table[3], Table[2]
+	-- return item..":"..enchant..":"..gem1..":"..gem2..":"..gem3, item
 end
 
 -------------------------- Get Mouseover Score -----------------------------------
 function GearScore_GetScore(Name, Target)
+	local itemNone = "0:0:0:0:0"
+	
 	if ( UnitIsPlayer(Target) ) then
 	    local PlayerClass, PlayerEnglishClass = UnitClass(Target);
 		local GearScore = 0; local PVPScore = 0; local ItemCount = 0; local LevelTotal = 0; local TitanGrip = 1; local TempEquip = {}; local TempPVPScore = 0
@@ -550,13 +549,26 @@ function GearScore_ShowTooltip(GS_Target)
 end
 -------------------------------------------------------------------------------
 
+function GearScore_GetAge(ScanDate)
+	local CurrentDate = GearScore_GetTimeStamp();
+	local DateSpread = CurrentDate - ScanDate;
+	if ( DateSpread == 0 ) then return "*Scanned < 1 min ago.", 0,1,0, 0, "minutes"; end;
+	if ( DateSpread < 60 ) then	return "*Scanned "..DateSpread.." minutes ago.", 0,1,0, DateSpread, "minutes"; end;
+	DateSpread = floor((DateSpread + 40) / 100);
+	if ( DateSpread < 24 ) then	return "*Scanned "..DateSpread.." hours ago.", 1,1,0, DateSpread, "hours"; end;
+	DateSpread = floor(DateSpread / 100) + floor(mod(DateSpread, 100) / 24);
+	if ( DateSpread < 31 ) then	return "*Scanned "..DateSpread.." days ago.", 1,0.5,0, DateSpread, "days"; end;
+	return "*Scanned over 1 month ago.", 1,0,0, floor(DateSpread / 30), "months";
+	
+end
 
 ----------------------------- Hook Set Unit -----------------------------------
 function GearScore_HookSetUnit(arg1, arg2)
     GS_GearScore = nil; local Name = GameTooltip:GetUnit(); GearScore_GetGroupScores(); local PreviousRecord = {}; 
-    
+    local Age = "*";
     local Realm = ""; if UnitName("mouseover") == Name then _, Realm = UnitName("mouseover"); if not Realm then Realm = GetRealmName(); end; end
-	if ( CanInspect("mouseover") ) and ( UnitName("mouseover") == Name ) and not ( GS_PlayerIsInCombat ) then 
+	if ( CanInspect("mouseover") ) and ( UnitName("mouseover") == Name ) and not ( GS_PlayerIsInCombat ) and ( UnitIsUnit("target", "mouseover") ) then 
+		Age = "";
 		if (GS_DisplayFrame:IsVisible()) and GS_DisplayPlayer and UnitName("target") then if GS_DisplayPlayer == UnitName("target") then return; end; end			
 		if ( GS_Data[GetRealmName()].Players[Name] ) then PreviousRecord = GS_Data[GetRealmName()].Players[Name]; end 
 		NotifyInspect("mouseover"); GearScore_GetScore(Name, "mouseover"); --GS_Data[GetRealmName()]["CurrentPlayer"] = GS_Data[GetRealmName()]["Players"][Name]
@@ -565,11 +577,19 @@ function GearScore_HookSetUnit(arg1, arg2)
  	if ( GS_Data[GetRealmName()].Players[Name] ) and ( GS_Data[GetRealmName()].Players[Name].GearScore > 0 ) and ( GS_Settings["Player"] == 1 ) then 
 		local Red, Blue, Green = GearScore_GetQuality(GS_Data[GetRealmName()].Players[Name].GearScore)
 		if ( GS_Settings["Level"] == 1 ) then 
-			GameTooltip:AddDoubleLine("GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore, "(iLevel: "..GS_Data[GetRealmName()].Players[Name].Average..")", Red, Green, Blue, Red, Green, Blue)
-			if ( GS_Settings["Date"] == 1 ) then local NoWDate, DateRed, DateGreen, DateBlue = GearScore_GetDate(GS_Data[GetRealmName()].Players[Name].Date); GameTooltip:AddLine(NoWDate, DateRed, DateGreen, DateBlue); end
+			GameTooltip:AddDoubleLine(Age.."GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore, "(iLevel: "..GS_Data[GetRealmName()].Players[Name].Average..")", Red, Green, Blue, Red, Green, Blue)
+			if ( GS_Settings["Date2"] == 1 ) and ( Age == "*" ) then 
+				local NoWDate, DateRed, DateGreen, DateBlue = GearScore_GetAge(GS_Data[GetRealmName()].Players[Name].Date); 
+				--print(GearScore_GetAge(GS_Data[GetRealmName()].Players[Name].Date));
+				GameTooltip:AddLine(NoWDate, DateRed, DateGreen, DateBlue);
+			end
 		else
-			GameTooltip:AddLine("GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore, Red, Green, Blue)
-			if ( GS_Settings["Date"] == 1 ) then local NoWDate, DateRed, DateGreen, DateBlue = GearScore_GetDate(GS_Data[GetRealmName()].Players[Name].Date); GameTooltip:AddLine(NoWDate, DateRed, DateGreen, DateBlue); end
+			GameTooltip:AddLine(Age.."GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore, Red, Green, Blue)
+			if ( GS_Settings["Date2"] == 1 ) and ( Age == "*" ) then 
+				local NoWDate, DateRed, DateGreen, DateBlue = GearScore_GetAge(GS_Data[GetRealmName()].Players[Name].Date); 
+				--print(GearScore_GetAge(GS_Data[GetRealmName()].Players[Name].Date));
+				GameTooltip:AddLine(NoWDate, DateRed, DateGreen, DateBlue); 
+			end
 		end
 		if ( GS_Settings["Compare"] == 1 ) then
 			local MyGearScore = GS_Data[GetRealmName()].Players[UnitName("player")].GearScore
@@ -586,6 +606,7 @@ function GearScore_HookSetUnit(arg1, arg2)
 		--print(EnglishFaction)
 		if ( ( GS_Factions[GS_Data[GetRealmName()].Players[Name].Faction] ~= UnitFactionGroup("player") ) and ( GS_Settings["KeepFaction"] == -1 ) ) or ( ( GS_Data[GetRealmName()].Players[Name].Level < GS_Settings["MinLevel"] ) and ( Name ~= UnitName("player") ) ) then GS_Data[GetRealmName()].Players[Name] = nil; end
 --		if ( ( GS_Data[GetRealmName()].Players[Name].Level < GS_Settings["MinLevel"] ) and ( Name ~= UnitName("player") ) ) then GS_Data[GetRealmName()].Players[Name] = nil; end
+		if ( GS_Settings["ShowHelp"] == 1 ) then GameTooltip: AddLine("Target this player and type /gs for detailed information. You can turn this msg off in the options screen. (/gs)", 1,1,1,1); end
 	end
 	--GearScore_Request(Name)
 end
@@ -634,32 +655,7 @@ ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER",GearScoreChatAdd)
 
 
 
-function GearScore_OnHookLFG(arg1, arg2, arg3, arg4, arg5)
-	--print("TOOLTIP WORKED!")
-	OriginalLFMButton_OnEnter(arg1, arg2, arg3, arg4, arg5)
-	local widthx = GameTooltip:GetWidth()
-	GameTooltip:SetWidth(widthx + 50)
-		local PlayerList = {}
-	for i=1,GameTooltip:NumLines() do 
-		local mytext = getglobal("GameTooltipTextLeft" .. i); 
-		local text = mytext:GetText(); --print(text);
-		--if ( text == "" ) then print("Empty Line Detected!"); end
-		local A, B = string.find(text, "Level")
-		--if ( A ) then print("A"..string.sub(text, 1, A - 4).."B"); end
-		if ( A ) and ( GS_Data[GetRealmName()].Players[string.sub(text, 1, A - 4)] ) then 
-			local Red, Green, Blue = GearScore_GetQuality(GS_Data[GetRealmName()].Players[string.sub(text, 1, A - 4)].GearScore)
-			local PlayerColor = "|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)  
-			text = PlayerColor.."("..GS_Data[GetRealmName()].Players[string.sub(text, 1, A - 4)].GearScore..") |r"..text
-		end
-		
-		tinsert(PlayerList, i, text);
-	end
-	GameTooltip:ClearLines()
-	for i,v in ipairs(PlayerList) do
-		GameTooltip:AddLine(v)
-	end
-	--GameTooltip:AppendText("|cff")
-end
+
 
 
 function GearScoreSetItemRef(arg1, arg2, ...)
@@ -667,7 +663,7 @@ function GearScoreSetItemRef(arg1, arg2, ...)
         GearScore_DisplayUnit(string.sub(arg1, 11), 1)
         return
 	end
- 	return OriginalSetItemRef(arg1, arg2, ...)
+ 	--return OriginalSetItemRef(arg1, arg2, ...)
 end
 
 
@@ -842,12 +838,19 @@ function GS_MANSET(Command)
  	
 end
 function GS_SCANSET(Command)
+		if ( GS_OptionsFrame:IsVisible() ) then GearScore_HideOptions(); end		
+		PanelTemplates_SetTab(GS_DisplayFrame, 1)
+		GS_DisplayFrame:Hide();
+		GS_ExPFrame:Hide();
+		GS_GearFrame:Show(); GS_NotesFrame:Hide(); GS_DefaultFrame:Show(); GS_ExPFrame:Hide()
+		GS_GearScoreText:Show(); GS_LocationText:Show(); GS_DateText:Show(); GS_AverageText: Show();
+		
 	    if ( UnitName("target") ) and ( Command == "" ) then 
 		 	 if not ( UnitIsPlayer("target") ) then GearScore_DisplayUnit(UnitName("player")) else GearScore_DisplayUnit(UnitName("target")); end
 	    else
          	if ( Command == "" ) then Command = UnitName("player"); end
          	if ( strlen(strupper(string.sub(Command, 1, 1))..strlower(string.sub(Command, 2))) ~= strlen(Command) ) then GearScore_DisplayUnit(Command); end
-			GearScore_DisplayUnit(strupper(string.sub(Command, 1, 1))..strlower(string.sub(Command, 2))); return
+         	GearScore_DisplayUnit(strupper(string.sub(Command, 1, 1))..strlower(string.sub(Command, 2))); return
 	    end
 end
 
@@ -901,7 +904,7 @@ function GearScore_DisplayUnit(Name, Auto)
 		GS_NameText:SetText(GS_Data[GetRealmName()].Players[Name].Name)
 	    GS_NameText:SetTextColor(GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Red, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Green, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Blue, 1)
 		Red, Green, Blue = GearScore_GetQuality(GS_Data[GetRealmName()].Players[Name].GearScore)
-		GS_GearScoreText:SetText("GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore)
+		GS_GearScoreText:SetText("Raw GearScore: "..GS_Data[GetRealmName()].Players[Name].GearScore)
 		GS_GearScoreText:SetTextColor(Red,Blue,Green)
 		GS_GuildText:SetTextColor(GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Red, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Green, GS_ClassInfo[GS_Classes[GS_Data[GetRealmName()].Players[Name].Class]].Blue, 1)
 		GS_GuildText:SetText(GS_Data[GetRealmName()].Players[Name].Guild)
@@ -947,14 +950,16 @@ end
 function GearScore_ShowOptions()
 	GS_OptionalDisplayed = 	GS_Displayed
 	GS_Displayed = nil
-	if ( GS_Settings["Restrict"] == 1 ) then GS_None:SetChecked(true); GS_Light:SetChecked(false); GS_Heavy:SetChecked(false); end												
+	if ( GS_Settings["Restrict"] == 1 ) then GS_None:SetChecked(true); GS_Light:SetChecked(false); GS_Heavy:SetChecked(false); end
 	if ( GS_Settings["Restrict"] == 2 ) then GS_Light:SetChecked(true); GS_None:SetChecked(false); GS_Heavy:SetChecked(false);end
 	if ( GS_Settings["Restrict"] == 3 ) then GS_Heavy:SetChecked(true); GS_Light:SetChecked(false); GS_None:SetChecked(false);end
 	if ( GS_Settings["Player"] == 1 ) then GS_ShowPlayerCheck:SetChecked(true); else GS_ShowPlayerCheck:SetChecked(false); end
 	if ( GS_Settings["Item"] == 1 ) then GS_ShowItemCheck:SetChecked(true); else GS_ShowItemCheck:SetChecked(false); end
 	if ( GS_Settings["Detail"] == 1 ) then GS_DetailCheck:SetChecked(true); else GS_DetailCheck:SetChecked(false); end
 	if ( GS_Settings["Level"] == 1 ) then GS_LevelCheck:SetChecked(true); else GS_LevelCheck:SetChecked(false); end
+	if ( GS_Settings["Date2"] == 1 ) then GS_DateCheck:SetChecked(true); else GS_DateCheck:SetChecked(false); end
 	if ( GS_Settings["AutoPrune"] == 1 ) then GS_PruneCheck:SetChecked(true); else GS_PruneCheck:SetChecked(false); end	
+	if ( GS_Settings["ShowHelp"] == 1 ) then GS_HelpCheck:SetChecked(true); else GS_HelpCheck:SetChecked(false); end
 	if ( GS_Settings["KeepFaction"] == 1 ) then GS_FactionCheck:SetChecked(true); else GS_FactionCheck:SetChecked(false); end
 	if ( GS_Settings["ML"] == 1 ) then GS_MasterlootCheck:SetChecked(true); else GS_MasterlootCheck:SetChecked(false); end
 	if ( GS_Settings["CHAT"] == 1 ) then GS_ChatCheck:SetChecked(true); else GS_ChatCheck:SetChecked(false); end
@@ -981,14 +986,17 @@ function GearScore_HideOptions()
 	if ( GS_None:GetChecked() ) then GearScore_SetNone(); end												
 	if ( GS_Light:GetChecked() ) then GearScore_SetLight(); end												
 	if ( GS_Heavy:GetChecked() ) then GearScore_SetHeavy(); end	
+	if ( GS_HelpCheck:GetChecked() ) then GS_Settings["ShowHelp"] = 1; else GS_Settings["ShowHelp"] = -1; end
 	if ( GS_ShowPlayerCheck:GetChecked() ) then GS_Settings["Player"] = 1; else GS_Settings["Player"] = -1; end											
 	if ( GS_DetailCheck:GetChecked() ) then GS_Settings["Detail"] = 1; else GS_Settings["Detail"] = -1; end											
 	if ( GS_LevelCheck:GetChecked() ) then GS_Settings["Level"] = 1; else GS_Settings["Level"] = -1; end	
 	if ( GS_ChatCheck:GetChecked() ) then GS_Settings["CHAT"] = 1; else GS_Settings["CHAT"] = -1; end
 	if ( GS_ShowItemCheck:GetChecked() ) then GS_Settings["Item"] = 1; else GS_Settings["Item"] = -1; end
+	if ( GS_DateCheck:GetChecked() ) then GS_Settings["Date2"] = 1; else GS_Settings["Date2"] = -1; end
 	if ( GS_PruneCheck:GetChecked() ) then GS_Settings["AutoPrune"] = 1; else GS_Settings["AutoPrune"] = -1; end		
 	if ( GS_FactionCheck:GetChecked() ) then GS_Settings["KeepFaction"] = 1; else GS_Settings["KeepFaction"] = -1; end
 	if ( GS_MasterlootCheck:GetChecked() ) then GS_Settings["ML"] = 1; else GS_Settings["ML"] = -1; end
+	GS_Settings["MinLevel"] = tonumber(GS_LevelEditBox:GetText());
 	GS_Settings["DatabaseAgeSlider"] = ( GS_DatabaseAgeSlider:GetValue() or 30 )
 	GS_OptionsFrame:Hide()		
 	if (GS_Displayed) then GearScore_DisplayUnit(GS_DisplayPlayer); end
@@ -1359,7 +1367,7 @@ function GearScoreCalculateEXP()
     --BackString[id] = SuperCount
 	end
 
-	for j = 17, 66 do
+	for j = 17, 68 do
 		id = GetAchievementInfo(15062, j)
 		for i,v in pairs(GS_AchInfo) do
 			if v[id] then
@@ -1457,11 +1465,8 @@ function GS_DecodeStats(Name)
 end
 
 
-OriginalLFMButton_OnEnter = LFMButton_OnEnter
-LFMButton_OnEnter = GearScore_OnHookLFG
 
-OriginalSetItemRef = SetItemRef
-SetItemRef = GearScoreSetItemRef
+hooksecurefunc("SetItemRef",GearScoreSetItemRef)
 
 GearScore_TimerFrame:Hide()
 GearScore_TimerFrame:SetScript("OnUpdate", GearScore_OnUpdate)

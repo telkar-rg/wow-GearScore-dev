@@ -5,7 +5,7 @@
 				<Size><AbsDimension x="32" y="32" /></Size>
 				<Scripts><OnEnter>
 						GameTooltip:SetOwner(self, "ANCHOR_Right")
-						if UnitName("target") and CanInspect("target") then 
+						if UnitName("target") and CanInspect("target") and ( GS_DisplayPlayer == UnitName("target") ) then 
 							local class, englishClass = UnitClass("target")
 							GS_Settings["CurrentClassMouseoverItem"] = englishClass
 							GameTooltip:ClearLines(); if ( GetInventoryItemLink("target", self:GetID()) ) then GameTooltip:SetHyperlink(GetInventoryItemLink("target", self:GetID())); end
@@ -55,7 +55,7 @@
 
 						end
 						GameTooltip:AddLine(" ")
-						GameTooltip:AddLine("Remember, this player could be an alt and still know the fights.", 1, 1, 1, 1, true)	
+						if ( GS_Settings["ShowHelp"] == 1 ) then GameTooltip:AddLine("Remember, this player could be an alt and still know the fights.", 1, 1, 1, 1, true); end
 						GameTooltip:AddLine("*Note: '5' means 5 or more kills")
 						GameTooltip:Show()
 
@@ -174,7 +174,7 @@
 							end
 							GameTooltip:AddLine(" ")
 						end
-						GameTooltip:AddLine("These values only represent if the player's stats are valuable to this spec. Not if they are in the correct ratio or if a player is missing any stat.", 1, 1, 1, 1, true)
+						if ( GS_Settings["ShowHelp"] == 1 ) then GameTooltip:AddLine("These values only represent if the player's stats are valuable to this spec. Not if they are in the correct ratio or if a player is missing any stat.", 1, 1, 1, 1, true); end
 						
 						GameTooltip:Show()
 
@@ -289,7 +289,11 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						GearScore_DisplayUnit(strupper(string.sub(GS_EditBox1:GetText(), 1, 1))..strlower(string.sub(GS_EditBox1:GetText(), 2)))
+						local Command = GS_EditBox1:GetText();
+						GS_SCANSET(Command)
+						--GearScore_DisplayUnit(strupper(string.sub(Command, 1, 1))..strlower(string.sub(Command, 2)))
+						--print(strupper(string.sub(GS_EditBox1:GetText(), 1, 1))..strlower(string.sub(GS_EditBox1:GetText(), 2)));
+						--GearScore_DisplayUnit(strupper(string.sub(GS_EditBox1:GetText(), 1, 1))..strlower(string.sub(GS_EditBox1:GetText(), 2)))
 						
 					</OnClick>
 				</Scripts>
@@ -839,13 +843,14 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>PlaySound("igMainMenuOpen");
-						PanelTemplates_SetTab(GS_DisplayFrame, 1)
-						GS_DisplayFrame:Hide(); GearScore_DisplayUnit(GS_DisplayPlayer, 1)
-						GS_ExPFrame:Hide()
-						--if GS_DatabaseFrame.tooltip then GS_DatabaseFrame.tooltip:Show(); else GS_DisplayFrame:Hide(); GearScore_DisplayUnit(GS_DisplayPlayer, 1); end
-						GS_GearFrame:Show(); GS_NotesFrame:Hide(); GS_DefaultFrame:Show(); GS_ExPFrame:Hide()
-						if ( GS_OptionsFrame:IsVisible() ) then GearScore_HideOptions(); end		
-						GS_GearScoreText:Show(); GS_LocationText:Show(); GS_DateText:Show(); GS_AverageText: Show();
+						GS_SCANSET(GS_DisplayPlayer)
+						--PanelTemplates_SetTab(GS_DisplayFrame, 1)
+						--GS_DisplayFrame:Hide(); GearScore_DisplayUnit(GS_DisplayPlayer, 1)
+						--GS_ExPFrame:Hide()
+						--if GS_DatabaseFrame.tooltip then GS_DatabaseFrame.tooltip:Show(); else GS_DisplayFrame:Hide(); 						--GearScore_DisplayUnit(GS_DisplayPlayer, 1); end
+						--GS_GearFrame:Show(); GS_NotesFrame:Hide(); GS_DefaultFrame:Show(); GS_ExPFrame:Hide()
+						--if ( GS_OptionsFrame:IsVisible() ) then GearScore_HideOptions(); end		
+						--GS_GearScoreText:Show(); GS_LocationText:Show(); GS_DateText:Show(); GS_AverageText: Show();
 					</OnClick>
 				</Scripts>
 			</Button>
@@ -1206,6 +1211,38 @@
 				<Size><AbsDimension x="20" y="20" /></Size>
 				<Anchors><Anchor point="TOPLEFT"><Offset x="500" y="-129" /></Anchor></Anchors>
 			</CheckButton>
+			<CheckButton name="GS_DateCheck" inherits="UICheckButtonTemplate" text="CheckButton8">
+				<Scripts>
+					<OnEnter>
+						GameTooltip:SetOwner(GS_ChatCheck, "ANCHOR_Right")
+						GameTooltip:ClearLines(); 
+						GameTooltip:AddLine("Show Dates on Tooltip",1,1,1)
+						GameTooltip:AddLine("Enabling this option will show you how old a GearScore is for that player on the tooltip.", nil, nil, nil, 1)
+						GameTooltip:Show()
+					</OnEnter>		
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>					
+				</Scripts>
+				<Size><AbsDimension x="20" y="20" /></Size>
+				<Anchors><Anchor point="TOPLEFT"><Offset x="500" y="-234" /></Anchor></Anchors>
+			</CheckButton>
+			<CheckButton name="GS_HelpCheck" inherits="UICheckButtonTemplate" text="CheckButton8">
+				<Scripts>
+					<OnEnter>
+						GameTooltip:SetOwner(GS_ChatCheck, "ANCHOR_Right")
+						GameTooltip:ClearLines(); 
+						GameTooltip:AddLine("Show GearScores Tips/Help",1,1,1)
+						GameTooltip:AddLine("Uncheck this box to remove GearScore tips and help from the tooltip.", nil, nil, nil, 1)
+						GameTooltip:Show()
+					</OnEnter>		
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>					
+				</Scripts>
+				<Size><AbsDimension x="20" y="20" /></Size>
+				<Anchors><Anchor point="TOPLEFT"><Offset x="500" y="-260" /></Anchor></Anchors>
+			</CheckButton>
 			<CheckButton name="GS_ChatCheck" inherits="UICheckButtonTemplate" text="CheckButton8">
 				<Scripts>
 					<OnEnter>
@@ -1223,7 +1260,7 @@
 					</OnLeave>					
 				</Scripts>
 				<Size><AbsDimension x="20" y="20" /></Size>
-				<Anchors><Anchor point="TOPLEFT"><Offset x="500" y="-260" /></Anchor></Anchors>
+				<Anchors><Anchor point="TOPLEFT"><Offset x="500" y="-286" /></Anchor></Anchors>
 			</CheckButton>
 			<EditBox name="GS_LevelEditBox" inherits="InputBoxTemplate">
 				<Size>
@@ -1362,7 +1399,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
-				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.15 (Release)" justifyH="LEFT">
+				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.17 (Release)" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="301" y="20" />
 					</Size>
@@ -1449,7 +1486,12 @@
 				<FontString name="GS_SpecFontString4" inherits="GameFontNormal" text="Show Tanking SpecScores" id="4" justifyH="RIGHT">
 					<Anchors><Anchor point="TOPRIGHT" relativepoint="TOPLEFT"><Offset x="486" y="-220" />	</Anchor></Anchors>
 				</FontString>
-
+				<FontString name="GS_FontString189" inherits="GameFontNormal" text="Show Data Age on Tooltip" justifyH="RIGHT">
+					<Anchors><Anchor point="TOPLEFT"><Offset x="330" y="-234" />	</Anchor></Anchors>
+				</FontString>
+				<FontString name="GS_FontString89" inherits="GameFontNormal" text="Show GearScore Tips/Help" justifyH="RIGHT">
+					<Anchors><Anchor point="TOPLEFT"><Offset x="330" y="-260" />	</Anchor></Anchors>
+				</FontString>
 
 				<FontString name="GS_FontString88" inherits="GameFontNormal" text="Show GearScores in Chat" justifyH="RIGHT">
 					<Anchors><Anchor point="TOPLEFT"><Offset x="336" y="-286" />	</Anchor></Anchors>

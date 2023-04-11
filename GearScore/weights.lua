@@ -285,9 +285,11 @@ function GS_CalculateSpecScore(Name, Class)
 			end
 		end
 	GearScore = floor(GearScore)
-	local Percent = 1
+	local OriginalGearScore = GS_Data[GetRealmName()].Players[Name].GearScore or GearScore
+	if ( GS_Data[GetRealmName()].Players[Name] ) then local OriginalGearScore = GS_Data[GetRealmName()].Players[Name].GearScore; else local OriginalGearScore = 0; end
+	local Percent = _G["GS_SpecBar"..j]:GetValue()
 	local Red, Green, Blue = GearScore_GetQuality(GearScore)
-	_G["GS_SpecBar"..j.."PercentText"]:SetText("|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)..GearScore.." |r(".._G["GS_SpecBar"..j]:GetValue().."%)")
+	_G["GS_SpecBar"..j.."PercentText"]:SetText("|cff"..string.format("%02x%02x%02x", Red * 255, Blue * 255, Green * 255)..floor(OriginalGearScore * Percent / 100).." |r(".._G["GS_SpecBar"..j]:GetValue().."%)")
 	_G["GS_SpecBar"..j.."GearSpecText"]:SetText(GearScoreClassSpecList[Class][j])
 
 	end
@@ -380,7 +382,7 @@ if ( Class == "WARRIOR" ) and ( SuperTotallyFakeVariable2 ) then
 	if ( GS_Data[GetRealmName()]["Players"][Name]["Equip"][17] ~= "0:0" ) and ( GearScoreSpecWeights[Class][i]["DUEL"] == 0 ) then
 		local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo("item:"..GS_Data[GetRealmName()]["Players"][Name]["Equip"][17])
     	SumStats = SumStats - GearScore_GetItemScore(ItemLink);
-    	table.insert(GS_WeightsTips[i], { [1] = "DUEL WAILDING", [2] = ((-1 * GearScore_GetItemScore(ItemLink))/TotalStats) } )
+    	table.insert(GS_WeightsTips[i], { [1] = "DUAL WEIlDING", [2] = ((-1 * GearScore_GetItemScore(ItemLink))/TotalStats) } )
 	end
 	if ( GearScoreSpecWeights[Class][i]["DUEL"] == 1 ) and ( GS_Data[GetRealmName()]["Players"][Name]["Equip"][17] == "0:0" ) then
 	    --print("
