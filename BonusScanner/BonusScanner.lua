@@ -1,4 +1,4 @@
-﻿--------------------------------------------------
+--------------------------------------------------
 -- BonusScanner Continued v5.2
 -- Originally developed by Crowley <crowley@headshot.de>
 -- performance improvements by Archarodim
@@ -102,7 +102,7 @@ BonusScanner.slots = {
 	{ effect = "INT",	cat = "ATT" },
 	{ effect = "SPI",	cat = "ATT" },
 	{ effect = "ARMOR", cat = "ATT" },
-
+	{ effect = "MASTERY", cat = "ATT"},
 	{ effect = "ARCANERES", cat = "RES" },
 	{ effect = "FIRERES", cat = "RES" },
 	{ effect = "NATURERES", cat = "RES" },
@@ -1404,7 +1404,7 @@ function BonusScanner:PrintInfo(bonuses, GemnoRed, GemnoYellow, GemnoBlue, Gemno
 				 if e.pformat then
 				 	ratingval, points = self:ProcessSpecialBonus (e.effect, bonuses[e.effect], level, class)
 				 	if ratingval =="" then
-				 ratingval = " ("..format(e.pformat,points)..") "
+				 ratingval = " ("..format(e.pformat,points or 0)..") "
 				  end
 				 DEFAULT_CHAT_FRAME:AddMessage(_G["LIGHTYELLOW_FONT_COLOR_CODE"]..L["BONUSSCANNER_NAMES"][e.effect]..": ".._G["HIGHLIGHT_FONT_COLOR_CODE"]..bonuses[e.effect]..ratingval)
 				 else

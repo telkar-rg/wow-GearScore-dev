@@ -2,27 +2,13 @@
 
 -------------------------------------------------------------------------------
 --                              GearScore                                    --
---                            Version 3.1.17                                 --
+--                            Version 3.1.20                                --
 --								Mirrikat45                                   --
 -------------------------------------------------------------------------------
 
--- Fixed a bug where you would see a target's equipment on mouseover instead of the intended player.
--- Fixed a bug where you couldn't see the Helm, Neck, Shoulders, and Back equipment of a player in the GS window.
--- Fixed a bug where "/gs <name>" would not work when the XP or Options frames were visible.
--- Fixed a similar bug when targeting a player with the options window open.
--- On the GS Window, GearScore will now display as "Raw GearScore".
--- I am still finding a large number of players who dont know about the /gs screen. I have added a message on the tooltip informing them of the /gs option. You can disable this message by visiting the options and unchecking the box.
--- THe new Show Help/Tips option will also enable/disable a few additional tooltips.
--- The Minimum Level option for the Database will now correctly set.
--- GearScore will no longer automatically update on mouseover. You must target a player to capture a new updated Score. While mousing over a player you will see a "*" next to the word "GearScore" to remind you that the info may be out of date.
--- Upgraded the DATE tooltip system. The tooltip will now show when the player was last scanned in the format "*Scanned X min/hour/days ago.".
--- The Date tooltip system is now on by default.
--- The Date tooltip system can now be turned on/off in the options menu.
--- New API for the Date system. For addon authors who use GearScore. You can now call:   GearScore_GetAge(ScanDate) - ScanDate should be the timestamp the player was scanned on. Timestamp is in teh format of  YYYYMMDDHHMM. Example: "December 28, 2010 at 12:45pm" is 200812281245.
--- This function returns: Message, Red, Green, Blue, Quantity, Scale. Message is the message shown on the tooltip such as "*Scanned 8 hours ago". Red, Green, and Blue return the color code for that message. Quantity is the amount of difference. For the previous example of 8 hours, Quantity would be returned as 8. Scale lets you know what the 8 represents. It will be either "minutes", "hours", "days", or "months".
--- Most functions of GearScore are disabled while in combat to prevent any lag or unwanted effects. I have decided to enable a function that requires manual operation to work.
--- If you're using the /gs window and target another player then the window will update for that player even if your in combat. However the addon will not inspect to request new information if your in combat. Mostly this will allow players to check gear/stats/expereince on a raid member while clearing trash.
--- Added Halion 10/25 to MISC group of the EXP tab.
+-- Fixed a bug with the CharactherStat pane not loading correctly.
+-- Added Spirit to list of approved stats for Paladins - The spec checking should still be ignored.
+-- Added a check which will cause the addon to fail to load when Cataclysm is released.
 
 ------------------------------------------------------------------------------
 function GearScore_OnUpdate(self, elapsed)
@@ -169,17 +155,24 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
       		if not ( GS_Settings ) then	GS_Settings = GS_DefaultSettings; GS_Talent = {}; GS_TimeStamp = {}; end
 			GS_PVP = {}; GS_EquipTBL = {}; GS_Bonuses = {}; GS_Timer = {}; GS_Request = {}; GS_Average = {}
 			if not ( GS_Data ) then GS_Data = {}; end; if not ( GS_Data[GetRealmName()] ) then GS_Data[GetRealmName()] = { ["Players"] = {} }; end
-  			GS_Settings["Developer"] = 0; GS_VersionNum = 30117; GS_Settings["OldVer"] = GS_VersionNum
+  			GS_Settings["Developer"] = 0; GS_VersionNum = 30119; GS_Settings["OldVer"] = GS_VersionNum
   			for i, v in pairs(GS_DefaultSettings) do if not ( GS_Settings[i] ) then GS_Settings[i] = GS_DefaultSettings[i]; end; end
   			if ( GS_Settings["AutoPrune"] == 1 ) then GearScore_Prune(); end
-			if ( GS_Settings["Developer"] == 0 ) then print("Welcome to GearScore 3.1.17. Type /gs to visit options and turn off help."); end
-			if ( GS_Settings["Developer"] == 1 ) then print("Welcome to GearScore 3.1.17. This is a test version. Please provide feedback at www.GearScoreAddon.com"); end
+			if ( GS_Settings["Developer"] == 0 ) then print("Welcome to GearScore 3.1.20. Type /gs to visit options and turn off help."); end
+			print("|cffFF1E00GearScore:|r There is currently a bug in which the UI will stop responding to inspection requests. This is not a bug caused by GearScore, but is a bug in the client. Blizzard is aware of the bug and a fix should be implimented shortly.");
+			if ( GS_Settings["Developer"] == 1 ) then print("Welcome to GearScore 3.1.20. This is a test version. Please provide feedback at www.GearScoreAddon.com"); end
   			if ( GS_Settings["Restrict"] == 1 ) then GearScore_SetNone(); end
   			if ( GS_Settings["Restrict"] == 2 ) then GearScore_SetLight(); end
   			if ( GS_Settings["Restrict"] == 3 ) then GearScore_SetHeavy(); end
   			if ( GetGuildInfo("player") ) then GuildRoster(); end
   			GearScore_GetScore(UnitName("player"), "player"); GearScore_Send(UnitName("player"), "ALL")
        	  	if ( GetGuildInfo("player") ) and ( GS_Settings["Developer"] ~= 1 )then SendAddonMessage( "GSY_Version", GS_Settings["OldVer"], "GUILD"); end
+--       	  	if ( GetBuildInfo() == "4.0.3") then 
+--       	  		print("ERROR: This version of GearScore is incompatible with Cataclysm. Please update at www.GearScoreAddon.com"); 
+--       	  		GS_DisplayFrame = nil;
+--       	  		GS_Settings = nil;
+--       	  		GS_Database = nil;
+--       	  	end;
         end
         if ( GS_Prefix == "GearScoreRecount" ) then
             local f = CreateFrame("Frame", "GearScoreRecountErrorFrame", UIParent);
@@ -238,15 +231,11 @@ function GearScore_GetItemCode(ItemLink)
 	if not ( ItemLink ) then return nil; end
 	local found, _, ItemString = string.find(ItemLink, "^|c%x+|H(.+)|h%[.*%]"); local Table = {}
 	for v in string.gmatch(ItemString, "[^:]+") do tinsert(Table, v); end
-	local item, enchant, gem1,gem2,gem3 = Table[2], Table[3], Table[4], Table[5], Table[6]
 	return Table[2]..":"..Table[3], Table[2]
-	-- return item..":"..enchant..":"..gem1..":"..gem2..":"..gem3, item
 end
 
 -------------------------- Get Mouseover Score -----------------------------------
 function GearScore_GetScore(Name, Target)
-	local itemNone = "0:0:0:0:0"
-	
 	if ( UnitIsPlayer(Target) ) then
 	    local PlayerClass, PlayerEnglishClass = UnitClass(Target);
 		local GearScore = 0; local PVPScore = 0; local ItemCount = 0; local LevelTotal = 0; local TitanGrip = 1; local TempEquip = {}; local TempPVPScore = 0
@@ -461,6 +450,7 @@ end
 
 function GearScore_GetQuality(ItemScore)
 	--if not ItemScore then return; end
+	--ItemScore = ItemScore / 2;
 	local Red = 0.1; local Blue = 0.1; local Green = 0.1; local GS_QualityDescription = "Legendary"
    	if not ( ItemScore ) then return 0, 0, 0, "Trash"; end
    	if ( ItemScore > 5999 ) then ItemScore = 5999; end
@@ -559,7 +549,6 @@ function GearScore_GetAge(ScanDate)
 	DateSpread = floor(DateSpread / 100) + floor(mod(DateSpread, 100) / 24);
 	if ( DateSpread < 31 ) then	return "*Scanned "..DateSpread.." days ago.", 1,0.5,0, DateSpread, "days"; end;
 	return "*Scanned over 1 month ago.", 1,0,0, floor(DateSpread / 30), "months";
-	
 end
 
 ----------------------------- Hook Set Unit -----------------------------------

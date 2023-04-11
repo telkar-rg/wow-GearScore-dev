@@ -1,3 +1,6 @@
+5.4 Mirrikat45 2010.11.11
+- Added scanning for Mastery, This *should* work in all languages regardless of localization.
+
 5.3 Mirrikat45 2010.01.23
 - Added Rune of the Narubian Carapace
 - Corrected amount of Defense from Run of the Stoneskin Gargoyle.

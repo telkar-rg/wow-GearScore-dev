@@ -33,7 +33,7 @@ L["BONUSSCANNER_NAMES"] = {
 	DMGWPN = "Increased Melee Damage", 
 	RANGEDDMG = "Ranged Weapon Damage",
 	ARMORPEN = "Armor Penetration Rating",
-
+	MASTERY = "Mastery",
 -- DPS
 	DPSMAIN = "Main Weapon(s) DPS",
 	DPSRANGED = "Ranged Weapon DPS",
@@ -56,6 +56,7 @@ L["BONUSSCANNER_NAMES"] = {
   
 --Haste
 	HASTE = "Haste Rating",
+	MASTERY = "Mastery Rating",
 
 --Spell Damage/healing
 	DMGUNDEAD	= "Spell Damage against Undead",
@@ -132,6 +133,7 @@ L["BONUSSCANNER_PATTERNS_PASSIVE"] = {
 	{ pattern = "Increases defense rating by (%d+)%.", effect = "DEFENSE" }, --jmlsteele
   { pattern = "Improves your resilience rating by (%d+)%.", effect = "RESILIENCE" }, 
   { pattern = "Increases your expertise rating by (%d+)%.", effect = "EXPERTISE" },
+
   { pattern = "Increased Fishing %+(%d+)%.", effect = "FISHING" }, -- fishing poles
 
 -- Abilities
@@ -192,8 +194,12 @@ L["BONUSSCANNER_PATTERNS_PASSIVE"] = {
 	{ pattern = "Improves hit rating by (%d+)%.", effect = "TOHIT" }, 	
 	
 --Haste
-	{ pattern = "Improves haste rating by (%d+)%.", effect = "HASTE" },
-		
+	--{ pattern = "Improves haste rating by (%d+)%.", effect = "HASTE" },
+	
+--MASTERY 
+	--This version attempts to work on all locals at once.	
+	{ pattern = string.gsub(ITEM_MOD_MASTERY_RATING, "%%d", "(%%d+)%%"), effect = "MASTERY"}, -- Mastery
+	--{ pattern = "Increases your mastery rating by (%d+)%.+", effect = "MASTERY"}, -- Mastery
 --Penetration
 	{ pattern = "Decreases the magical resistances of your spell targets by (%d+).", effect = "SPELLPEN" },
 	{ pattern = "Increases your spell penetration by (%d+)%.", effect = "SPELLPEN" },	
@@ -243,6 +249,7 @@ L["BONUSSCANNER_PATTERNS_GENERIC_LOOKUP"] = {
 	["Armor Penetration Rating"] = "ARMORPEN",	
 	["Defense Rating"] = "DEFENSE",
 	["Haste Rating"] = "HASTE",
+	["Mastery Rating"] = "MASTERY",
 	["Mana per 5 Seconds"] = "MANAREG",
 	["mana per 5 seconds"] = "MANAREG",
 	["Mana every 5 Sec"] = "MANAREG",

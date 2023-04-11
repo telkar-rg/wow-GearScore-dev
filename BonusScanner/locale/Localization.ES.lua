@@ -1,4 +1,4 @@
-local L = LibStub("AceLocale-3.0"):NewLocale("BonusScanner","esES")
+﻿local L = LibStub("AceLocale-3.0"):NewLocale("BonusScanner","esES")
 if not L then return end
 -- bonus names
 L["BONUSSCANNER_NAMES"] = {

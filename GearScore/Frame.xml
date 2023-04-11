@@ -206,12 +206,53 @@
 				<BarColor r=".25" g=".25" b=".75"/>
 </StatusBar>
 
+
+
+	<Frame name="GearScore_StatsFrame" inherits="StatGroupTemplate" parent="CharacterStatsPaneScrollChild">
+		<Size x="169" y="350"/>
+		<Scripts>
+			<OnLoad>
+				<![CDATA[
+				local id = #PAPERDOLL_STATCATEGORY_DEFAULTORDER + 1;
+				local frame = CreateFrame("Frame", "CharacterStatsPaneCategory"..id, CharacterStatsPaneScrollChild, "StatGroupTemplate");
+				STAT_CATEGORY_GEARSCORE = "GearScore";
+				PAPERDOLL_STATCATEGORIES["GEARSCORE"] = {["id"] = id,stats = {"GS_GEARSCORE"}};
+				tinsert(PAPERDOLL_STATCATEGORY_DEFAULTORDER, 1, "GEARSCORE");
+				PAPERDOLL_STATINFO ["GS_GEARSCORE"] = {updateFunc = function(statFrame, unit) GS_StatsUpdate(statFrame, unit); end};
+				function GS_StatsUpdate(statFrame, unit)
+					local statValue = 0;
+					if ( GS_Data[GetRealmName()].Players[UnitName(unit)] ) then
+						statValue = GS_Data[GetRealmName()].Players[UnitName(unit)].GearScore;
+					else
+						GearScore_GetScore(UnitName("player"), "player");
+						if ( GS_Data[GetRealmName()].Players[UnitName(unit)] ) then 
+							statValue = GS_Data[GetRealmName()].Players[UnitName(unit)].GearScore; 
+						else
+							statValue = 0;
+						end;
+					end;
+					local r, g, b = GearScore_GetQuality(statValue);
+					if ( statValue == 0 ) then statValue = "????"; end;
+					statValue = "|cff"..string.format("%02x%02x%02x", r * 255, b * 255, g * 255)..statValue;
+					PaperDollFrame_SetLabelAndText(statFrame, "Raw GearScore", statValue, false);
+					statFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE..format(PAPERDOLLFRAME_TOOLTIP_FORMAT, "Raw GearScore:").." "..statValue..FONT_COLOR_CODE_CLOSE;
+					statFrame.tooltip2 = 'This is your raw GearScore before spec & gem calculations. This value reflects your GS if fully gemed, enchanted, and wearing appropriate stats.';
+					statFrame:Show();
+				end
+				]]>
+			</OnLoad>
+		</Scripts>
+	</Frame>
+	
+	
+	
+	
 	<Frame name="GS_DisplayFrame" parent="UIParent" toplevel="true" movable="true" enableMouse="true">
 		<Scripts>
 
 	
 		<OnLoad>
-			tinsert(UISpecialFrames, this:GetName());
+			tinsert(UISpecialFrames, self:GetName());
 
 	self:EnableMouse(true)
 	self:SetMovable(true)
@@ -1325,8 +1366,8 @@
 					</OnLeave>
 					<OnLoad>
 						local EnglishFaction, Faction = UnitFactionGroup("player")
-						if ( EnglishFaction == "Horde" ) then GS_OppFactionText:SetText("Record Alliance Players"); end
-						if ( EnglishFaction == "Alliance" ) then GS_OppFactionText:SetText("Record Horde Players"); end
+						--if ( EnglishFaction == "Horde" ) then GS_OppFactionText:SetText("Record Alliance Players"); end
+						--if ( EnglishFaction == "Alliance" ) then GS_OppFactionText:SetText("Record Horde Players"); end
 					</OnLoad>												
 				</Scripts>			
 				<Size>
@@ -1354,14 +1395,14 @@
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					getglobal(this:GetName().."High"):SetText("30");
-					getglobal(this:GetName().."Low"):SetText("1");
-					this:SetMinMaxValues(1,30);
-					this:SetValueStep(1);
-					getglobal(this:GetName().."Text"):SetText("Keep data for: 30 days.")
+					getglobal(self:GetName().."High"):SetText("30");
+					getglobal(self:GetName().."Low"):SetText("1");
+					self:SetMinMaxValues(1,30);
+					self:SetValueStep(1);
+					getglobal(self:GetName().."Text"):SetText("Keep data for: 30 days.")
 				</OnLoad>
 				<OnValueChanged> 
-					getglobal(this:GetName().."Text"):SetText("Keep data for: "..GS_DatabaseAgeSlider:GetValue().." days.")
+					getglobal(self:GetName().."Text"):SetText("Keep data for: "..GS_DatabaseAgeSlider:GetValue().." days.")
 					--if ( GS_Settings ) then GS_Settings["DatabaseAgeSlider"] = GS_DatabaseAgeSlider:GetValue(); end
 				</OnValueChanged>
 				</Scripts>
@@ -1399,7 +1440,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
-				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.17 (Release)" justifyH="LEFT">
+				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.20 (Release)" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="301" y="20" />
 					</Size>
@@ -1547,7 +1588,7 @@
 						</Anchor>
 					</Anchors>
 				</FontString>
-				<FontString name="GS_OppFactionText" inherits="GameFontNormal" text="Record Alliance Players" justifyH="LEFT">
+				<FontString name="GS_OppFactionText" inherits="GameFontNormal" text="Record Opposite Faction" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="264" y="20" />
 					</Size>
@@ -1608,7 +1649,7 @@
 			self:Hide()
 		</OnEscapePressed>
 		<OnLoad>
-		tinsert(UISpecialFrames, this:GetName());
+		tinsert(UISpecialFrames, self:GetName());
 			self:Hide()
 	self:EnableMouse(true)
 	self:SetMovable(true)
@@ -1641,7 +1682,7 @@
 <GameTooltip name="GearScoreTooltip" inherits="GameTooltipTemplate">
    <Scripts>
      <Onload>
-       this:SetOwner(GS_DatabaseFrame, "ANCHOR_BOTTOMLEFT");
+       self:SetOwner(GS_DatabaseFrame, "ANCHOR_BOTTOMLEFT");
      </Onload>
    </Scripts>
  </GameTooltip>
@@ -1767,13 +1808,13 @@
 			</Anchors>
 			<Scripts>
 				<OnLoad>
-					getglobal(this:GetName().."High"):SetText("25");
-					getglobal(this:GetName().."Low"):SetText("1");
-					this:SetMinMaxValues(1,25);
-					this:SetValueStep(1);
+					getglobal(self:GetName().."High"):SetText("25");
+					getglobal(self:GetName().."Low"):SetText("1");
+					self:SetMinMaxValues(1,25);
+					self:SetValueStep(1);
 				</OnLoad>
 				<OnValueChanged> 
-					getglobal(this:GetName().."Text"):SetText("Top: "..GS_Slider:GetValue())
+					getglobal(self:GetName().."Text"):SetText("Top: "..GS_Slider:GetValue())
 					if ( GS_Settings ) then GS_Settings["Slider"] = GS_Slider:GetValue(); end
 				</OnValueChanged>
 				</Scripts>

@@ -333,32 +333,32 @@ if GearScoreSpecWeights[Class][i] then
 			table.insert(GS_WeightsTips[i], { [1] = GearScoreClassStatsTranslation[j] or j, [2] = ((-1 * SpecBonuses[j])/TotalStats) } )
 		end
 	end
-	if ( Class ~= "DRUID" ) and ( GearScoreSpecWeights[Class][i]["DEFENSECAP"] ) then
-		if ( SpecBonuses["DEFENSE"] ) then
-		    if ( (SpecBonuses["DEFENSE"] / 4.92) < 140  ) then 
-		    	local CurrentDefense = (( SpecBonuses["DEFENSE"] / 4.92 ) + ((SpecBonuses["RESILIENCE"] or 0) * 0.3048780487804878048780487804878))
-		    	local PercentReduction = ((140 - ( CurrentDefense )) / 140) * 0.25
-		    	SumStats = SumStats - ( TotalStats * PercentReduction ) 
-		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER DEFENSE CAP", [2] = -1 * PercentReduction } )
-		    end
-		else
-		    SumStats = SumStats * 0.75
-		    table.insert(GS_WeightsTips[i], { [1] = "UNDER DEFENSE CAP", [2] = -0.25 } )
-		end
-	end
-	if ( GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] ) then
-		if ( SpecBonuses["TOHIT"] ) then
-		    if ( SpecBonuses["TOHIT"]  < GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] ) then 
-				local PercentReduction = ((GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] - SpecBonuses["TOHIT"]) / GearScoreSpecWeights[Class][i]["CAPRATIO"]) / 100
-		    	SumStats = SumStats - ( PercentReduction * TotalStats )
-		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER HIT CAP", [2] = -1 * PercentReduction } )
-		    end
-		else
-				local PercentReduction = ((GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"]) / GearScoreSpecWeights[Class][i]["CAPRATIO"]) / 100
-		    	SumStats = SumStats - ( PercentReduction * TotalStats )
-		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER HIT CAP", [2] = -1 * PercentReduction } )
-		end
-	end
+--	if ( Class ~= "DRUID" ) and ( GearScoreSpecWeights[Class][i]["DEFENSECAP"] ) then
+--		if ( SpecBonuses["DEFENSE"] ) then
+--		    if ( (SpecBonuses["DEFENSE"] / 4.92) < 140  ) then 
+--		    	local CurrentDefense = (( SpecBonuses["DEFENSE"] / 4.92 ) + ((SpecBonuses["RESILIENCE"] or 0) * 0.3048780487804878048780487804878))
+--		    	local PercentReduction = ((140 - ( CurrentDefense )) / 140) * 0.25
+--		    	SumStats = SumStats - ( TotalStats * PercentReduction ) 
+--		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER DEFENSE CAP", [2] = -1 * PercentReduction } )
+--		    end
+--		else
+--		    SumStats = SumStats * 0.75
+--		    table.insert(GS_WeightsTips[i], { [1] = "UNDER DEFENSE CAP", [2] = -0.25 } )
+--		end
+--	end
+--	if ( GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] ) then
+--		if ( SpecBonuses["TOHIT"] ) then
+--		    if ( SpecBonuses["TOHIT"]  < GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] ) then 
+--				local PercentReduction = ((GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"] - SpecBonuses["TOHIT"]) / GearScoreSpecWeights[Class][i]["CAPRATIO"]) / 100
+--		    	SumStats = SumStats - ( PercentReduction * TotalStats )
+--		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER HIT CAP", [2] = -1 * PercentReduction } )
+--		    end
+--		else
+--				local PercentReduction = ((GearScoreSpecWeights[Class][i]["ABSOLUTEMINHIT"]) / GearScoreSpecWeights[Class][i]["CAPRATIO"]) / 100
+--		    	SumStats = SumStats - ( PercentReduction * TotalStats )
+--		    	table.insert(GS_WeightsTips[i], { [1] = "UNDER HIT CAP", [2] = -1 * PercentReduction } )
+--		end
+--	end
 if ( Class == "DEATHKNIGHT" ) or ( Class == "WARRIOR" ) or ( Class == "Rogue" ) or ( Class == "Shaman" ) then
  --Force Tanks to not use Duel Weilding,
 	if ( GS_Data[GetRealmName()]["Players"][Name]["Equip"][17] ~= "0:0" ) and ( GearScoreSpecWeights[Class][i]["DUEL"] == 0 ) then
@@ -461,6 +461,7 @@ GearScoreSpecWeights = {
 			["ATTACKPOWER"] = 0,
 			["BLOCKVALUE"] = 1,
 			["MANAREG"] = 1,
+			["SPI"] = 1,
 			["STA"] = 1,
 		},
 		[2] = {--Protection
@@ -479,9 +480,11 @@ GearScoreSpecWeights = {
 			["CRIT"] = 1,
 			["SPELLPOW"] = 1,
 			["STA"] = 1,
+			["SPI"] = 1
 		},
 		[3] = {
 			["STR"] = 1,
+			["SPI"] = 1,
 			["CRIT"] = 1,
 			["ARMORPEN"] = 1,
 			["AGI"] = 1,
