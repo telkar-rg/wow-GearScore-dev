@@ -129,6 +129,7 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
 		if ( GS_Prefix == "GSY" ) and ( GS_Settings["Communication"] == 1 ) and ( GS_Sender ~= UnitName("player") ) then
 			if ( GS_Whisper == "RAID" ) then GS_Whisper = "PARTY"; end
 			local tbl = {}
+			-- print("-- gs\n",GS_AddonMessage)
 			for v in string.gmatch(GS_AddonMessage, "[^$]+") do
  				tinsert(tbl, v)
 			end
@@ -213,9 +214,45 @@ function GearScore_ComposeRecord(tbl, GS_Sender)
 	for i = 12, 30 do
 		if ( i ~= 15 ) then Equip[i-11] = tbl[i]; end
 	end	
-	if ( GS_Data[GetRealmName()].Players[Name] ) then if ( GS_Data[GetRealmName()].Players[Name].StatString ) then local StatString = GS_Data[GetRealmName()].Players[Name].StatString; end end
-	GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = GearScore, ["PVP"] = 1, ["Level"] = tonumber(Level), ["Faction"] = Faction, ["Sex"] = Sex, ["Guild"] = Guild,
-    ["Race"] = Race, ["Class"] =  Class, ["Spec"] = 1, ["Location"] = Location, ["Scanned"] = Scanned, ["Date"] = Date, ["Average"] = Average, ["Equip"] = Equip, ["StatString"] = StatString}
+	
+	if GS_Settings["TmogFix"] == 1 then -- transmog fix check of items
+		local id, ilvl
+		for _,v in pairs(Equip) do 
+			_, _, id, _ = string.find(v, "([^:]+):([^:]+)")
+			id = tonumber(id)
+			if id and id > 0 then
+				_, _, _, ilvl = GetItemInfo(id)
+				if ilvl and ilvl < 200 then
+					-- print("-- gs invalid")
+					return "InValid"
+				end
+			end
+		end
+	end
+	
+	if ( GS_Data[GetRealmName()].Players[Name] ) then 
+		if ( GS_Data[GetRealmName()].Players[Name].StatString ) then 
+			local StatString = GS_Data[GetRealmName()].Players[Name].StatString; 
+		end 
+	end
+	GS_Data[GetRealmName()].Players[Name] = { 
+		["Name"] = Name, 
+		["GearScore"] = GearScore, 
+		["PVP"] = 1, 
+		["Level"] = tonumber(Level), 
+		["Faction"] = Faction, 
+		["Sex"] = Sex, 
+		["Guild"] = Guild,
+		["Race"] = Race, 
+		["Class"] = Class, 
+		["Spec"] = 1, 
+		["Location"] = Location, 
+		["Scanned"] = Scanned, 
+		["Date"] = Date, 
+		["Average"] = Average, 
+		["Equip"] = Equip, 
+		["StatString"] = StatString
+	}
 end
 
 function GearScore_Prune()
