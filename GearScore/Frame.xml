@@ -1345,11 +1345,12 @@
 					<OnEnter>
 						GameTooltip:SetOwner(GS_TmogFixCheck, "ANCHOR_Right")
 						GameTooltip:ClearLines(); 
-						GameTooltip:AddLine("Transmog Fix",1,1,1); 
-						GameTooltip:AddLine("Ignore any Players wearing gear"); 
-						GameTooltip:AddLine("of iLvl below 200.");
-						GameTooltip:AddLine("This should filter out most of");
-						GameTooltip:AddLine("the Transmog gear false detections.");
+						GameTooltip:AddLine("Transmog Soft Fix",1,1,1); 
+						GameTooltip:AddLine("Ignore scans of any players where the ");
+						GameTooltip:AddLine("client clearly inspected Transmog gear:"); 
+						GameTooltip:AddLine("- Item ID is pre-WotLK");
+						GameTooltip:AddLine("- Item Quality is poor or common");
+						GameTooltip:AddLine("- Item Level is below 130");
 						GameTooltip:Show()
 					</OnEnter>
 					<OnLeave>
@@ -1586,7 +1587,7 @@
 				</FontString>	
 				
 				
-				<FontString name="GS_TmogFixText" inherits="GameFontNormal" text="Transmog Fix" justifyH="LEFT">
+				<FontString name="GS_TmogFixText" inherits="GameFontNormal" text="Transmog Soft-Fix" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="264" y="20" />
 					</Size>
