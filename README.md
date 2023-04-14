@@ -1,7 +1,11 @@
 # wow-GearScore-dev
-GearScore for WotLK with Transmog fix
+GearScore for WotLK with Transmog fix.
 
-This will filter out Scans and Received Data if one of the following conditions is true for at least one **visible** item:
+When targeting a player on WotLK servers with Transmog, the behaviour **seems** to be such that on the first inspection your Client seems to "see" the visual Transmog items as they are (which usually cause the target to be rated at a noticably lower GearScore).
+Only when causing another "mouseover" interaction, the Client seems to "see" the actual gear underneath the Transmog visuals (calculating the GearScore correctly this time).
+
+### Changes
+This updated version will filter out Scans and Received Data (via addon msg channel) if one of the following conditions is true for at least one **visible** item:
 - Item ID below 35560 (pre-WotLK)
 - Item Quality is poor or common
 - Item Level is below 130 (with the exception of heirlooms)
