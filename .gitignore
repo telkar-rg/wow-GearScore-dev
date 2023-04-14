@@ -1,3 +1,7 @@
+# ignore folders
+imgs/
+
+
 # Compiled Lua sources
 luac.out
 
