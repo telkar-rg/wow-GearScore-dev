@@ -5,11 +5,11 @@ When targeting a player on WotLK servers with Transmog, the behaviour **seems** 
 
 Only when causing another "mouseover" interaction, the Client seems to "see" the actual gear underneath the Transmog visuals (calculating the GearScore correctly this time).
 
-### Changes
+## Changes
 This updated version will filter out Scans and Received Data (via addon msg channel) if one of the following conditions is true for at least one **visible** item:
 - Item ID below 35560 (pre-WotLK)
 - Item Quality is poor or common
 - Item Level is below 130 (with the exception of heirlooms)
 
-### Files
+## [Releases](https://github.com/telkar-rg/wow-GearScore-dev/releases)
 - [GearScore 3.1.17 +1.zip](https://github.com/telkar-rg/wow-GearScore-dev/releases/download/r1/GearScore.3.1.17.+1.zip)
