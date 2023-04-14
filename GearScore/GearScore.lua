@@ -25,6 +25,16 @@
 -- Added Halion 10/25 to MISC group of the EXP tab.
 
 ------------------------------------------------------------------------------
+local name_unknown = getglobal("UNKNOWN")
+
+-- local DEBUG_PRINT_GEARSCORE = true
+
+local function debug_print(...)
+	-- if DEBUG_PRINT_GEARSCORE then
+		-- print(...)
+	-- end
+end
+
 function GearScore_OnUpdate(self, elapsed)
 --Code use to Function Timing of Transmition Information--
 	if not GSX_Timer then GSX_Timer = 0; end
@@ -166,6 +176,8 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
 
 
 	if ( GS_EventName == "ADDON_LOADED" ) then
+		name_unknown = getglobal("UNKNOWN")
+		
 		if ( GS_Prefix == "GearScore" ) then
       		if not ( GS_Settings ) then	GS_Settings = GS_DefaultSettings; GS_Talent = {}; GS_TimeStamp = {}; end
 			GS_PVP = {}; GS_EquipTBL = {}; GS_Bonuses = {}; GS_Timer = {}; GS_Request = {}; GS_Average = {}
@@ -215,16 +227,41 @@ function GearScore_ComposeRecord(tbl, GS_Sender)
 		if ( i ~= 15 ) then Equip[i-11] = tbl[i]; end
 	end	
 	
-	if GS_Settings["TmogFix"] == 1 then -- transmog fix check of items
-		local id, ilvl
-		for _,v in pairs(Equip) do 
-			_, _, id, _ = string.find(v, "([^:]+):([^:]+)")
-			id = tonumber(id)
-			if id and id > 0 then
-				_, _, _, ilvl = GetItemInfo(id)
-				if ilvl and ilvl < 200 then
-					-- print("-- gs invalid")
-					return "InValid"
+	 -- transmog fix check of items (only for lvl 80 chars)
+	if GS_Settings["TmogFix"] == 1 and tonumber(Level) == 80 then
+		local id, entry, itemRarity, itemLevel, itemEquipLoc
+		local visibleSlots = {1, 3, 5, 6, 7, 8, 9, 10, 15, 16, 17, 18}
+		local thresID = 35560
+		
+		
+		for _,slot in pairs(visibleSlots) do -- go thru all visible slots
+			entry = Equip[slot]
+			
+			if entry then
+				_, _, id, _ = string.find(entry, "([^:]+):([^:]+)")
+				id = tonumber(id)
+				if id and id > 0 then
+					if id < thresID then 
+						debug_print("-- gs:", Name)
+						debug_print("itemID is pre-WotLK", id)
+						return "InValid"
+					end
+					_, _, itemRarity, itemLevel, _, _, _, _, itemEquipLoc = GetItemInfo(id)
+					if itemRarity then
+						if itemRarity < 2 then -- poor to uncommon
+							debug_print("-- gs:", Name)
+							debug_print("itemRarity too low!", id)
+							return "InValid"
+						elseif itemRarity < 7 then -- if not an heirloom
+							if itemLevel and itemLevel < 130 and itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
+								debug_print("-- gs:", Name)
+								debug_print("itemLevel too low", id)
+								return "InValid"
+							end
+						end
+						-- else: heirlooms get a pass
+					end
+					
 				end
 			end
 		end
@@ -285,19 +322,35 @@ end
 -------------------------- Get Mouseover Score -----------------------------------
 function GearScore_GetScore(Name, Target)
 	local itemNone = "0:0:0:0:0"
+	local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture, itemID
+	local visibleSlots = {
+		[1] = 1,
+		[3] = 1,
+		[5] = 1,
+		[6] = 1,
+		[7] = 1,
+		[8] = 1,
+		[9] = 1,
+		[10] = 1,
+		[15] = 1,
+		[16] = 1,
+		[17] = 1,
+		[18] = 1,
+	}
+	local thresID = 35560
 	
 	if ( UnitIsPlayer(Target) ) then
 	    local PlayerClass, PlayerEnglishClass = UnitClass(Target);
 		local GearScore = 0; local PVPScore = 0; local ItemCount = 0; local LevelTotal = 0; local TitanGrip = 1; local TempEquip = {}; local TempPVPScore = 0
 
 		if ( GetInventoryItemLink(Target, 16) ) and ( GetInventoryItemLink(Target, 17) ) then
-      		local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(GetInventoryItemLink(Target, 16))
+      		ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(GetInventoryItemLink(Target, 16))
             local TitanGripGuess = 0
             if ( ItemEquipLoc == "INVTYPE_2HWEAPON" ) then TitanGrip = 0.5; end
 		end
 
 		if ( GetInventoryItemLink(Target, 17) ) then
-			local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(GetInventoryItemLink(Target, 17))
+			ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(GetInventoryItemLink(Target, 17))
 			if ( ItemEquipLoc == "INVTYPE_2HWEAPON" ) then TitanGrip = 0.5; end
 			TempScore, ItemLevel = GearScore_GetItemScore(GetInventoryItemLink(Target, 17));
 			if ( PlayerEnglishClass == "HUNTER" ) then TempScore = TempScore * 0.3164; end
@@ -308,18 +361,43 @@ function GearScore_GetScore(Name, Target)
 		end
 		
 		for i = 1, 18 do
+			ItemLink = GetInventoryItemLink(Target, i)
+			if ( ItemLink ) then
+				ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
+				
+				-- transmog fix check of items (only for lvl 80 chars)
+				if visibleSlots[i] then
+					if GS_Settings["TmogFix"] == 1 and UnitLevel(Target)==80 then
+						_, itemID = GearScore_GetItemCode(ItemLink)
+						itemID = tonumber(itemID)
+						if itemID < thresID then 
+							debug_print("-- gs:", Name)
+							debug_print("itemID is pre-WotLK", itemID, ItemLink, " - slot", i)
+							GearScore = 0; return;
+						end
+						if itemRarity then
+							if itemRarity < 2 then -- poor to uncommon
+								debug_print("-- gs:", Name)
+								debug_print("itemRarity too low!", itemID, ItemLink, " - slot", i)
+								GearScore = 0; return;
+							elseif itemRarity < 7 then -- if not an heirloom
+								if itemLevel and itemLevel < 130 and itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
+									debug_print("-- gs:", Name)
+									debug_print("itemLevel too low", itemID, ItemLink, " - slot", i)
+									GearScore = 0; return;
+								end
+							end
+							-- else: heirlooms get a pass
+						end
+					end -- Transmog fix
+				end
+			end
 
 			if ( i ~= 4 ) and ( i ~= 17 ) then
-        		ItemLink = GetInventoryItemLink(Target, i)
+        		-- ItemLink = GetInventoryItemLink(Target, i)
 				if ( ItemLink ) then
-        			local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
+        			-- local ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
 					
-					if GS_Settings["TmogFix"] == 1 then
-						if ItemLevel and ItemLevel < 200 then 
-							-- print("-- gs stopped") 
-							return 
-						end
-					end
 					
      				TempScore, ItemLevel, a, b, c, d, TempPVPScore = GearScore_GetItemScore(ItemLink);
 					if ( i == 16 ) and ( PlayerEnglishClass == "HUNTER" ) then TempScore = TempScore * 0.3164; end
@@ -626,9 +704,21 @@ end
 
 ----------------------------- Hook Set Unit -----------------------------------
 function GearScore_HookSetUnit(arg1, arg2)
-    GS_GearScore = nil; local Name = GameTooltip:GetUnit(); GearScore_GetGroupScores(); local PreviousRecord = {}; 
+	if not UnitIsPlayer("mouseover") then return end -- ignore npcs
+	if UnitName("mouseover") == name_unknown then return end -- ignore "Unbekannt"
+	
+    GS_GearScore = nil; 
+	local Name = GameTooltip:GetUnit(); 
+	GearScore_GetGroupScores(); 
+	local PreviousRecord = {}; 
     local Age = "*";
-    local Realm = ""; if UnitName("mouseover") == Name then _, Realm = UnitName("mouseover"); if not Realm then Realm = GetRealmName(); end; end
+    local Realm = ""; 
+	
+	if UnitName("mouseover") == Name then 
+		_, Realm = UnitName("mouseover"); 
+		if not Realm then Realm = GetRealmName(); end; 
+	end
+	
 	if ( CanInspect("mouseover") ) and ( UnitName("mouseover") == Name ) and not ( GS_PlayerIsInCombat ) and ( UnitIsUnit("target", "mouseover") ) then 
 		Age = "";
 		if (GS_DisplayFrame:IsVisible()) and GS_DisplayPlayer and UnitName("target") then if GS_DisplayPlayer == UnitName("target") then return; end; end			
