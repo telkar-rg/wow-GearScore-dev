@@ -1427,7 +1427,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
-				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore 3.1.17 +1 (Transmog Soft-Fix)" justifyH="LEFT">
+				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore 3.1.17 +1a (Transmog Soft-Fix)" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="301" y="20" />
 					</Size>

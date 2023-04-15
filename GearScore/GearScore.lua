@@ -241,25 +241,27 @@ function GearScore_ComposeRecord(tbl, GS_Sender)
 				_, _, id, _ = string.find(entry, "([^:]+):([^:]+)")
 				id = tonumber(id)
 				if id and id > 0 then
-					if id < thresID then 
-						debug_print("-- gs:", Name)
-						debug_print("itemID is pre-WotLK", id)
-						return "InValid"
-					end
 					_, _, itemRarity, itemLevel, _, _, _, _, itemEquipLoc = GetItemInfo(id)
-					if itemRarity then
-						if itemRarity < 2 then -- poor to uncommon
+					if itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
+						if id < thresID then 
 							debug_print("-- gs:", Name)
-							debug_print("itemRarity too low!", id)
+							debug_print("itemID is pre-WotLK", id)
 							return "InValid"
-						elseif itemRarity < 7 then -- if not an heirloom
-							if itemLevel and itemLevel < 130 and itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
-								debug_print("-- gs:", Name)
-								debug_print("itemLevel too low", id)
-								return "InValid"
-							end
 						end
-						-- else: heirlooms get a pass
+						if itemRarity then
+							if itemRarity < 2 then -- poor to uncommon
+								debug_print("-- gs:", Name)
+								debug_print("itemRarity too low!", id)
+								return "InValid"
+							elseif itemRarity < 7 then -- if not an heirloom
+								if itemLevel and itemLevel < 130 then
+									debug_print("-- gs:", Name)
+									debug_print("itemLevel too low", id)
+									return "InValid"
+								end
+							end
+							-- else: heirlooms get a pass
+						end
 					end
 					
 				end
@@ -366,7 +368,7 @@ function GearScore_GetScore(Name, Target)
 				ItemName, ItemLink, ItemRarity, ItemLevel, ItemMinLevel, ItemType, ItemSubType, ItemStackCount, ItemEquipLoc, ItemTexture = GetItemInfo(ItemLink)
 				
 				-- transmog fix check of items (only for lvl 80 chars)
-				if visibleSlots[i] then
+				if visibleSlots[i] and itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
 					if GS_Settings["TmogFix"] == 1 and UnitLevel(Target)==80 then
 						_, itemID = GearScore_GetItemCode(ItemLink)
 						itemID = tonumber(itemID)
@@ -381,7 +383,7 @@ function GearScore_GetScore(Name, Target)
 								debug_print("itemRarity too low!", itemID, ItemLink, " - slot", i)
 								GearScore = 0; return;
 							elseif itemRarity < 7 then -- if not an heirloom
-								if itemLevel and itemLevel < 130 and itemEquipLoc and itemEquipLoc ~= "INVTYPE_RELIC" then
+								if itemLevel and itemLevel < 130 then
 									debug_print("-- gs:", Name)
 									debug_print("itemLevel too low", itemID, ItemLink, " - slot", i)
 									GearScore = 0; return;

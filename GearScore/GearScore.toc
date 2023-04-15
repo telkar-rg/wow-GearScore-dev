@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Title: GearScore +1
+## Title: GearScore +1a
 ## Notes: Quickly and easily judge a player's level of Gear (Transmog Soft Fix)
 ## Version: 3.1.17 - Release
 ## Author: Mirrikat45
