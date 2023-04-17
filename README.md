@@ -14,9 +14,10 @@ This updated version will filter out Scans and Received Data (via addon msg chan
 This is a **Soft-Fix**: It will not be able to catch ALL incorrect Transmog scans, but it will filter out MOST of them.
 
 ## [Releases](https://github.com/telkar-rg/wow-GearScore-dev/releases)
-- [GearScore 3.1.17 +1a](https://github.com/telkar-rg/wow-GearScore-dev/releases/download/r2/GearScore.3.1.17.+1a.zip):
-  - Corrected small error in checking for non-visible relics in slot 18
-- GearScore 3.1.17 +1:
+- ~~GearScore 3.1.17 +1a:~~
+  - ~~Corrected small error in checking for non-visible relics in slot 18~~
+  - Edit: Contains breaking bug!
+- [GearScore 3.1.17 +1](https://github.com/telkar-rg/wow-GearScore-dev/releases/download/r1/GearScore.3.1.17.+1.zip):
   - Fixed Lua error on gear tokens
   - Added Transmog Soft-Fix
 
