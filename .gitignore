@@ -1,5 +1,6 @@
 # ignore folders
-imgs/
+_imgs/
+*.lnk
 
 
 # Compiled Lua sources

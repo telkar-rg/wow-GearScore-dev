@@ -753,9 +753,20 @@ function GearScore_HookSetUnit(arg1, arg2)
 			if ( MyGearScore   == TheirGearScore   ) then GameTooltip:AddDoubleLine("YourScore: "..MyGearScore  , "(+0)", 0,1,1,0,1,1); end	
 		end
 		
-		if ( GS_Settings["Detail"] == 1 ) then GearScore_SetDetails(GameTooltip, Name); end
-		if ( GS_Settings["Special"] == 1 ) and ( GS_Special[Name] ) then if ( GS_Special[Name]["Realm"] == Realm ) then GameTooltip:AddLine(GS_Special[GS_Special[Name].Type], 1, 0, 0 ); end; end
-		if ( GS_Settings["Special"] == 1 ) and ( GS_Special[GS_Data[GetRealmName()].Players[Name].Guild] ) then GameTooltip:AddLine(GS_Special[GS_Special[GS_Data[GetRealmName()].Players[Name].Guild].Type], 1, 0, 0 ); end
+		if ( GS_Settings["Detail"] == 1 ) then 
+			GearScore_SetDetails(GameTooltip, Name); 
+		end
+		if ( GS_Settings["Special"] == 1 ) and ( GS_Special[Name] ) then 
+			if ( GS_Special[Name]["Realm"] == Realm ) then 
+				GameTooltip:AddLine(GS_Special[GS_Special[Name].Type], 1, 0, 0 ); 
+			end; 
+		end
+		if ( GS_Settings["Special"] == 1 ) and ( GS_Special[GS_Data[GetRealmName()].Players[Name].Guild] ) then 
+			GameTooltip:AddLine(GS_Special[GS_Special[GS_Data[GetRealmName()].Players[Name].Guild].Type], 1, 0, 0 ); 
+		end
+		
+		-- todo: title qualificiations
+		
         local EnglishFaction, Faction = UnitFactionGroup("player")
 		--print(EnglishFaction)
 		if ( ( GS_Factions[GS_Data[GetRealmName()].Players[Name].Faction] ~= UnitFactionGroup("player") ) and ( GS_Settings["KeepFaction"] == -1 ) ) or ( ( GS_Data[GetRealmName()].Players[Name].Level < GS_Settings["MinLevel"] ) and ( Name ~= UnitName("player") ) ) then GS_Data[GetRealmName()].Players[Name] = nil; end
