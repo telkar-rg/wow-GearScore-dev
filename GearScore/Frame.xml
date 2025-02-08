@@ -1337,7 +1337,33 @@
 						<Offset x="61" y="-103" />
 					</Anchor>
 				</Anchors>
-			</CheckButton>		
+			</CheckButton>
+			
+			
+			<CheckButton name="GS_TmogFixCheck" inherits="UICheckButtonTemplate" text="CheckButton101">
+				<Scripts>
+					<OnEnter>
+						GameTooltip:SetOwner(GS_TmogFixCheck, "ANCHOR_Right")
+						GameTooltip:ClearLines();
+						GameTooltip:AddLine("Transmog Fix",1,1,1);
+						GameTooltip:AddLine("Ignore received GS information");
+						GameTooltip:AddLine("(addon channel of raid or guild)");
+						GameTooltip:AddLine("of suspected Transmog gear.");
+						GameTooltip:Show()
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>
+				</Scripts>
+				<Size>
+					<AbsDimension x="20" y="20" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="61" y="-200" />
+					</Anchor>
+				</Anchors>
+ 			</CheckButton>
 
 
 		<Slider name="GS_DatabaseAgeSlider" inherits="OptionsSliderTemplate">
@@ -1556,8 +1582,22 @@
 							<Offset x="93" y="-103" />
 						</Anchor>
 					</Anchors>
-				</FontString>				
-				<FontString name="GS_FontString14" inherits="GameFontNormalLarge" text="Masterloot Options" justifyH="RIGHT">
+				</FontString>
+				
+				
+				<FontString name="GS_TmogFixText" inherits="GameFontNormal" text="|cFF40E0E0Transmog Soft-Fix|r" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="264" y="20" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset x="93" y="-200" />
+						</Anchor>
+					</Anchors>
+				</FontString>
+				
+				
+ 				<FontString name="GS_FontString14" inherits="GameFontNormalLarge" text="Masterloot Options" justifyH="RIGHT">
 					<Size>
 						<AbsDimension x="174" y="20" />
 					</Size>

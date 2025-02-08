@@ -180,6 +180,7 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
   			if ( GetGuildInfo("player") ) then GuildRoster(); end
   			GearScore_GetScore(UnitName("player"), "player"); GearScore_Send(UnitName("player"), "ALL")
        	  	if ( GetGuildInfo("player") ) and ( GS_Settings["Developer"] ~= 1 )then SendAddonMessage( "GSY_Version", GS_Settings["OldVer"], "GUILD"); end
+			if ( not GS_Settings["TmogFix"] ) then GS_Settings["TmogFix"] = 1; end -- default active even after upgrading version
         end
         if ( GS_Prefix == "GearScoreRecount" ) then
             local f = CreateFrame("Frame", "GearScoreRecountErrorFrame", UIParent);
@@ -963,6 +964,7 @@ function GearScore_ShowOptions()
 	if ( GS_Settings["KeepFaction"] == 1 ) then GS_FactionCheck:SetChecked(true); else GS_FactionCheck:SetChecked(false); end
 	if ( GS_Settings["ML"] == 1 ) then GS_MasterlootCheck:SetChecked(true); else GS_MasterlootCheck:SetChecked(false); end
 	if ( GS_Settings["CHAT"] == 1 ) then GS_ChatCheck:SetChecked(true); else GS_ChatCheck:SetChecked(false); end
+	if ( GS_Settings["TmogFix"] == 1 ) then GS_TmogFixCheck:SetChecked(true); else GS_TmogFixCheck:SetChecked(false); end
 	GS_DatabaseAgeSliderText:SetText("Keep data for: "..(GS_Settings["DatabaseAgeSlider"] or 30).." days.")
 	GS_DatabaseAgeSlider:SetValue(GS_Settings["DatabaseAgeSlider"] or 30)
 	GS_LevelEditBox:SetText(GS_Settings["MinLevel"])
@@ -994,6 +996,7 @@ function GearScore_HideOptions()
 	if ( GS_ShowItemCheck:GetChecked() ) then GS_Settings["Item"] = 1; else GS_Settings["Item"] = -1; end
 	if ( GS_DateCheck:GetChecked() ) then GS_Settings["Date2"] = 1; else GS_Settings["Date2"] = -1; end
 	if ( GS_PruneCheck:GetChecked() ) then GS_Settings["AutoPrune"] = 1; else GS_Settings["AutoPrune"] = -1; end		
+	if ( GS_TmogFixCheck:GetChecked() ) then GS_Settings["TmogFix"] = 1; else GS_Settings["TmogFix"] = -1; end
 	if ( GS_FactionCheck:GetChecked() ) then GS_Settings["KeepFaction"] = 1; else GS_Settings["KeepFaction"] = -1; end
 	if ( GS_MasterlootCheck:GetChecked() ) then GS_Settings["ML"] = 1; else GS_Settings["ML"] = -1; end
 	GS_Settings["MinLevel"] = tonumber(GS_LevelEditBox:GetText());
