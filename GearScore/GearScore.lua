@@ -565,6 +565,9 @@ end
 
 ----------------------------- Hook Set Unit -----------------------------------
 function GearScore_HookSetUnit(arg1, arg2)
+    if not UnitIsPlayer("mouseover") then return end -- ignore npcs
+    if UnitName("mouseover") == UNKNOWN then return end -- ignore "Unbekannt"
+    
     GS_GearScore = nil; local Name = GameTooltip:GetUnit(); GearScore_GetGroupScores(); local PreviousRecord = {}; 
     local Age = "*";
     local Realm = ""; if UnitName("mouseover") == Name then _, Realm = UnitName("mouseover"); if not Realm then Realm = GetRealmName(); end; end
