@@ -1,8 +1,6 @@
 # wow-GearScore-dev
 
-
-<img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/3.png" align="left" width="47%"><img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/2.png" align="right" width="48%">
-
+<img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/3.png" width="47%"> <img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/2.png" width="47%"> 
 
 ## Changes
 ### [GearScore 3.1.17 +2 (Rawr Export)](https://github.com/telkar-rg/wow-GearScore-dev/releases/tag/p2)
