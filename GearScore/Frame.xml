@@ -1395,6 +1395,13 @@
 					<OnLeave>
 						GameTooltip:Hide()
 					</OnLeave>
+					<OnClick>
+						if GS_RawrXmlShowButtonCheck:GetChecked() then
+							GS_RawrXmlButton:Show()
+						else
+							GS_RawrXmlButton:Hide()
+						end
+					</OnClick>
 				</Scripts>
 				<Size>
 					<AbsDimension x="20" y="20" />
