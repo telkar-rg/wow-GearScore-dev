@@ -1,8 +1,8 @@
 ## Interface: 30300
-## Title: GearScore
+## Title: GearScore +2
 ## Notes: Quickly and easily judge a player's level of Gear
 ## Version: 3.1.17 - Release
-## Author: Mirrikat45
+## Author: Mirrikat45, Telkar-RG
 ## SavedVariables: GS_Data, GS_Settings
 ## Dependencies: BonusScanner
 ## OptionalDeps: Ace3, LibQTip-1.0, LibQTipClick-1.1, LibDataBroker-1.1, Recount
