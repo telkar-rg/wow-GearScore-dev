@@ -1,7 +1,7 @@
 # wow-GearScore-dev
 
 
-<img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/1.png" align="left" width="44%"><img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/2.png" align="right" width="50%">
+<img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/3.png" align="left" width="48%"><img src="https://raw.githubusercontent.com/telkar-rg/wow-GearScore-dev/refs/heads/main/_img/2.png" align="right" width="48%">
 
 
 ## Changes
