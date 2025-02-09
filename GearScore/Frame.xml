@@ -346,6 +346,24 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			
+			<!-- Telkar edit here -->
+			<Button name="GS_RawrXmlButton" inherits="UIPanelButtonTemplate" text="Rawr XML">
+				<Size>
+					<AbsDimension x="75" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativeTo="GS_DisplayFrame">
+						<Offset x="-13" y="-407" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						<!-- InviteUnit(GS_DisplayPlayer) -->
+						GearScore_CopyRawrXml()
+					</OnClick>
+				</Scripts>
+			</Button>
 
 
 		</Frames>
@@ -1339,13 +1357,13 @@
 				</Anchors>
 			</CheckButton>
 			
-			
+			<!-- Telkar edit here -->
 			<CheckButton name="GS_TmogFixCheck" inherits="UICheckButtonTemplate" text="CheckButton101">
 				<Scripts>
 					<OnEnter>
 						GameTooltip:SetOwner(GS_TmogFixCheck, "ANCHOR_Right")
 						GameTooltip:ClearLines();
-						GameTooltip:AddLine("Transmog Fix",1,1,1);
+						GameTooltip:AddLine("Transmog Soft-Fix",1,1,1);
 						GameTooltip:AddLine("Ignore received GS information");
 						GameTooltip:AddLine("(addon channel of raid or guild)");
 						GameTooltip:AddLine("of suspected Transmog gear.");
@@ -1361,6 +1379,29 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="61" y="-200" />
+					</Anchor>
+				</Anchors>
+ 			</CheckButton>
+			<CheckButton name="GS_RawrXmlShowButtonCheck" inherits="UICheckButtonTemplate" text="CheckButton102">
+				<Scripts>
+					<OnEnter>
+						GameTooltip:SetOwner(GS_RawrXmlShowButtonCheck, "ANCHOR_Right")
+						GameTooltip:ClearLines();
+						GameTooltip:AddLine("Show Rawr-XML Button",1,1,1);
+						GameTooltip:AddLine("Show Button to export target ");
+						GameTooltip:AddLine("gear in XML-format for Rawr.");
+						GameTooltip:Show()
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>
+				</Scripts>
+				<Size>
+					<AbsDimension x="20" y="20" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="61" y="-230" />
 					</Anchor>
 				</Anchors>
  			</CheckButton>
@@ -1584,7 +1625,7 @@
 					</Anchors>
 				</FontString>
 				
-				
+				<!-- Telkar edit here -->
 				<FontString name="GS_TmogFixText" inherits="GameFontNormal" text="|cFF40E0E0Transmog Soft-Fix|r" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="264" y="20" />
@@ -1592,6 +1633,16 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset x="93" y="-200" />
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="GS_RawrXmlShowButtonText" inherits="GameFontNormal" text="|cFFFF4040Show Rawr-XML Button|r" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="264" y="20" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset x="93" y="-230" />
 						</Anchor>
 					</Anchors>
 				</FontString>

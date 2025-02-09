@@ -25,6 +25,171 @@
 -- Added Halion 10/25 to MISC group of the EXP tab.
 
 ------------------------------------------------------------------------------
+
+-- Telkar edit here
+local orig_print = print
+local print = function(...) orig_print("[GS]", ...) end
+
+local currentRawrXml = "currentRawrXml"
+local xmlPrefix = '<?xml version="1.0" encoding="utf-8"?>\n<Character xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+local xmlPostfix = '</Character>'
+
+
+StaticPopupDialogs["GearScore_RawrXmlCopyDialog"] = {
+	text = "Ctrl-C to copy - Save as an .xml file",
+	button2 = CLOSE,
+	hasEditBox = 1,
+	hasWideEditBox = 1,
+	OnShow = function()
+		local editBox = _G[this:GetName().."WideEditBox"]
+		if editBox then
+			editBox:SetText(currentRawrXml)
+			editBox:SetFocus()
+			editBox:HighlightText(0)
+		end
+		local button = _G[this:GetName().."Button2"]
+		if button then
+			button:ClearAllPoints()
+			button:SetWidth(200)
+			button:SetPoint("CENTER", editBox, "CENTER", 0, -30)
+		end
+	end,
+	EditBoxOnTextChanged = function(...)
+		local editBox = _G[this:GetName().."WideEditBox"]
+		if editBox then
+			editBox:SetText(currentRawrXml)
+			editBox:SetFocus()
+			editBox:HighlightText(0)
+		end
+	end,
+	EditBoxOnEscapePressed = function() this:GetParent():Hide() end,
+	timeout = 0,
+	whileDead = 1,
+	hideOnEscape = 1,
+	maxLetters=1024, -- this otherwise gets cached from other dialogs which caps it at 10..20..30...
+	preferredIndex = 3,  -- avoid some UI taint
+}
+
+local xmlTags = {
+	[1] = 'Head',
+	[2] = 'Neck',
+	[3] = 'Shoulders',
+	[5] = 'Chest',
+	[6] = 'Waist',
+	[7] = 'Legs',
+	[8] = 'Feet',
+	[9] = 'Wrist',
+	[10] = 'Hands',
+	[11] = 'Finger1',
+	[12] = 'Finger2',
+	[13] = 'Trinket1',
+	[14] = 'Trinket2',
+	[15] = 'Back',
+	[16] = 'MainHand',
+	[17] = 'OffHand',
+	[18] = 'Ranged',
+}
+local translatorTable = {
+	["HU"] = "Human",
+	["DW"] = "Dwarf",
+	["GN"] = "Gnome",
+	["DR"] = "Draenei",
+	["NE"] = "NightElf",
+	["OR"] = "Orc",
+	["TA"] = "Tauren",
+	["TR"] = "Troll",
+	["BE"] = "BloodElf",
+	["UN"] = "Undead",
+	
+	["WA"] = "Warrior",
+	["DK"] = "DeathKnight",
+	["PA"] = "Paladin",
+	["SH"] = "Shaman",
+	["HU"] = "Hunter",
+	["DR"] = "Druid",
+	["RO"] = "Rogue",
+	["WK"] = "Warlock",
+	["PR"] = "Priest",
+	["MA"] = "Mage",
+	
+	["WARRIOR"] 	= "Warrior",
+	["DEATHKNIGHT"] = "DeathKnight",
+	["PALADIN"] 	= "Paladin",
+	["PRIEST"] 	= "Priest",
+	["SHAMAN"] 	= "Shaman",
+	["DRUID"] 	= "Druid",
+	["ROGUE"] 	= "Rogue",
+	["MAGE"] 	= "Mage",
+	["WARLOCK"] = "Warlock",
+	["HUNTER"] 	= "Hunter",
+}
+
+
+local northrendGems = { 	-- GEM_MAP stolen from Rahuum/RawrConverter
+	-- [ench] = gem,
+    [3292] = 36766, [3371] = 39900, [3374] = 39905, [3376] = 39907, [3377] = 39908, [3378] = 39909,
+    [3379] = 39910, [3380] = 39911, [3446] = 39996, [3447] = 39997, [3448] = 39998, [3449] = 39999,
+    [3450] = 40000, [3451] = 40001, [3452] = 40002, [3453] = 40003, [3518] = 40111, [3519] = 40112,
+    [3520] = 40113, [3521] = 40114, [3522] = 40115, [3523] = 40116, [3525] = 40117, [3524] = 40118,
+    [3649] = 41432, [3644] = 41434, [3648] = 41435, [3652] = 41436, [3647] = 41437, [3650] = 41438,
+    [3646] = 41439, [3732] = 42142, [3733] = 42143, [3734] = 42144, [3740] = 42151, [3741] = 42152,
+    [3745] = 42153, [3746] = 42154, [3861] = 45862, [3862] = 45879, [3866] = 45883, [3293] = 36767,
+    [3387] = 39919, [3388] = 39920, [3389] = 39927, [3390] = 39932, [3454] = 40008, [3455] = 40009,
+    [3456] = 40010, [3457] = 40011, [3532] = 40119, [3533] = 40120, [3534] = 40121, [3535] = 40122,
+    [3654] = 41440, [3655] = 41441, [3653] = 41442, [3656] = 41443, [3735] = 42145, [3736] = 42146,
+    [3747] = 42155, [3863] = 45880, [3864] = 45881, [3427] = 39968, [3428] = 39974, [3429] = 39975,
+    [3430] = 39976, [3431] = 39977, [3432] = 39978, [3433] = 39979, [3434] = 39980, [3435] = 39981,
+    [3436] = 39982, [3437] = 39983, [3438] = 39984, [3439] = 39985, [3440] = 39986, [3441] = 39988,
+    [3442] = 39989, [3443] = 39990, [3444] = 39991, [3445] = 39992, [3499] = 40085, [3500] = 40086,
+    [3501] = 40088, [3502] = 40089, [3503] = 40090, [3504] = 40091, [3505] = 40092, [3510] = 40094,
+    [3506] = 40095, [3511] = 40096, [3515] = 40098, [3507] = 40099, [3512] = 40100, [3516] = 40101,
+    [3508] = 40102, [3513] = 40103, [3509] = 40104, [3514] = 40105, [3517] = 40106, [3572] = 40164,
+    [3573] = 40165, [3574] = 40166, [3575] = 40167, [3576] = 40168, [3577] = 40169, [3578] = 40170,
+    [3579] = 40171, [3580] = 40172, [3581] = 40173, [3582] = 40174, [3583] = 40175, [3584] = 40176,
+    [3585] = 40177, [3586] = 40178, [3587] = 40179, [3588] = 40180, [3589] = 40181, [3590] = 40182,
+    [3711] = 41463, [3700] = 41464, [3714] = 41465, [3702] = 41466, [3701] = 41467, [3699] = 41468,
+    [3712] = 41469, [3698] = 41470, [3713] = 41471, [3709] = 41472, [3705] = 41473, [3716] = 41474,
+    [3703] = 41475, [3708] = 41476, [3710] = 41477, [3715] = 41478, [3706] = 41479, [3707] = 41480,
+    [3704] = 41481, [3274] = 35501, [3621] = 41285, [3622] = 41307, [3623] = 41333, [3624] = 41335,
+    [3625] = 41339, [3632] = 41375, [3633] = 41376, [3634] = 41377, [3635] = 41378, [3636] = 41379,
+    [3637] = 41380, [3638] = 41381, [3639] = 41382, [3640] = 41385, [3641] = 41389, [3626] = 41395,
+    [3631] = 41396, [3642] = 41397, [3628] = 41398, [3643] = 41400, [3627] = 41401, [3798] = 44076,
+    [3799] = 44078, [3801] = 44081, [3800] = 44082, [3802] = 44084, [3803] = 44087, [3804] = 44088,
+    [3805] = 44089, [3404] = 39946, [3405] = 39947, [3411] = 39948, [3407] = 39949, [3408] = 39950,
+    [3409] = 39951, [3410] = 39952, [3406] = 39953, [3412] = 39954, [3413] = 39955, [3414] = 39956,
+    [3415] = 39957, [3416] = 39958, [3417] = 39959, [3422] = 39960, [3423] = 39961, [3424] = 39962,
+    [3426] = 39963, [3418] = 39964, [3419] = 39965, [3420] = 39966, [3421] = 39967, [3477] = 40037,
+    [3478] = 40038, [3479] = 40039, [3480] = 40040, [3481] = 40041, [3482] = 40043, [3483] = 40044,
+    [3484] = 40045, [3485] = 40046, [3486] = 40047, [3487] = 40048, [3488] = 40049, [3489] = 40050,
+    [3490] = 40051, [3491] = 40052, [3492] = 40053, [3493] = 40054, [3494] = 40055, [3495] = 40056,
+    [3496] = 40057, [3497] = 40058, [3498] = 40059, [3549] = 40142, [3550] = 40143, [3551] = 40144,
+    [3552] = 40145, [3553] = 40146, [3554] = 40147, [3555] = 40148, [3556] = 40149, [3557] = 40150,
+    [3558] = 40151, [3559] = 40152, [3560] = 40153, [3561] = 40154, [3563] = 40155, [3564] = 40156,
+    [3565] = 40157, [3566] = 40158, [3567] = 40159, [3568] = 40160, [3569] = 40161, [3570] = 40162,
+    [3571] = 40163, [3767] = 41429, [3696] = 41482, [3683] = 41483, [3686] = 41484, [3677] = 41485,
+    [3692] = 41486, [3680] = 41487, [3682] = 41488, [3685] = 41489, [3695] = 41490, [3687] = 41491,
+    [3681] = 41492, [3688] = 41493, [3689] = 41494, [3690] = 41495, [3679] = 41496, [3693] = 41497,
+    [3697] = 41498, [3684] = 41499, [3694] = 41500, [3678] = 41501, [3691] = 41502, [3242] = 34142,
+    [3254] = 34143, [3749] = 42701, [3750] = 42702, [3879] = 49110, [3391] = 39933, [3392] = 39934,
+    [3393] = 39935, [3394] = 39936, [3395] = 39937, [3396] = 39938, [3397] = 39939, [3398] = 39940,
+    [3399] = 39941, [3400] = 39942, [3401] = 39943, [3402] = 39944, [3403] = 39945, [3464] = 40022,
+    [3465] = 40023, [3474] = 40024, [3466] = 40025, [3472] = 40026, [3473] = 40027, [3476] = 40028,
+    [3467] = 40029, [3475] = 40030, [3468] = 40031, [3469] = 40032, [3470] = 40033, [3471] = 40034,
+    [3536] = 40129, [3537] = 40130, [3544] = 40131, [3538] = 40132, [3545] = 40133, [3546] = 40134,
+    [3548] = 40135, [3539] = 40136, [3547] = 40137, [3540] = 40138, [3541] = 40139, [3543] = 40140,
+    [3542] = 40141, [3664] = 41450, [3670] = 41451, [3675] = 41452, [3669] = 41453, [3663] = 41454,
+    [3674] = 41455, [3665] = 41456, [3673] = 41457, [3668] = 41458, [3672] = 41459, [3667] = 41460,
+    [3671] = 41461, [3666] = 41462, [3381] = 39912, [3382] = 39914, [3383] = 39915, [3384] = 39916,
+    [3385] = 39917, [3386] = 39918, [3458] = 40012, [3459] = 40013, [3460] = 40014, [3461] = 40015,
+    [3462] = 40016, [3463] = 40017, [3526] = 40123, [3527] = 40124, [3528] = 40125, [3529] = 40126,
+    [3530] = 40127, [3531] = 40128, [3661] = 41444, [3662] = 41445, [3659] = 41446, [3660] = 41447,
+    [3657] = 41448, [3658] = 41449, [3737] = 42148, [3738] = 42149, [3739] = 42150, [3742] = 42156,
+    [3743] = 42157, [3744] = 42158, [3792] = 44066, [3865] = 45882, [3867] = 45987
+}
+
+-- Telkar edit here
+
+
 function GearScore_OnUpdate(self, elapsed)
 --Code use to Function Timing of Transmition Information--
 	if not GSX_Timer then GSX_Timer = 0; end
@@ -213,17 +378,23 @@ function GearScore_ComposeRecord(tbl, GS_Sender)
 		if ( i ~= 15 ) then Equip[i-11] = tbl[i]; end
 	end
 	
-	if GS_Settings["TmogFix"] == 1 then -- transmog fix check of items
+	-- Telkar edit here
+	if GS_Settings["TmogFix"] == 1 and Level==80 then -- transmog fix check of items
 		local id, ilvl
-		for _,v in pairs(Equip) do
-			_, _, id, _ = string.find(v, "([^:]+):([^:]+)")
-			id = tonumber(id)
-			if id and id > 0 then
-				if id < 35000 then return "InValid" end -- ignore pre WotLK items
-				_, _, _, ilvl = GetItemInfo(id)
-				if ilvl and ilvl < 200 then
-					-- print("-- gs invalid")
-					return "InValid"
+		for i,v in pairs(Equip) do
+			if i==1 or i==3 or i==5 or i==6 or i==7 or i==8 or i==9 or i==10 or i==15 or i==16 or i==17 or i==18 then
+				_, _, id, _ = string.find(v, "([^:]+):([^:]+)")
+				id = tonumber(id)
+				if id and id > 0 then
+					if id < 35000 then
+						-- print("--", Name, "from", GS_Sender, "is invalid")
+						return "InValid" 
+					end -- ignore pre WotLK items
+					_, _, _, ilvl = GetItemInfo(id)
+					if ilvl and ilvl < 200 then
+						-- print("--", Name, "from", GS_Sender, "is invalid")
+						return "InValid"
+					end
 				end
 			end
 		end
@@ -320,8 +491,23 @@ function GearScore_GetScore(Name, Target)
 			currentzone = "Unknown Location"
 		end
         local GuildName = GetGuildInfo(Target); if not ( GuildName ) then GuildName = "*"; else GuildName = GuildName; end
-		GS_Data[GetRealmName()].Players[Name] = { ["Name"] = Name, ["GearScore"] = floor(GearScore), ["PVP"] = 1, ["Level"] = UnitLevel(Target), ["Faction"] = GS_Factions[UnitFactionGroup(Target)], ["Sex"] = UnitSex(Target), ["Guild"] = GuildName,
-        ["Race"] = GS_Races[RaceEnglish], ["Class"] =  GS_Classes[ClassEnglish], ["Spec"] = 1, ["Location"] = GS_Zones[currentzone], ["Scanned"] = UnitName("player"), ["Date"] = GearScore_GetTimeStamp(), ["Average"] = floor((LevelTotal / ItemCount)+0.5), ["Equip"] = TempEquip}
+		GS_Data[GetRealmName()].Players[Name] = { 
+			["Name"] = Name,
+			["GearScore"] = floor(GearScore),
+			["PVP"] = 1,
+			["Level"] = UnitLevel(Target),
+			["Faction"] = GS_Factions[UnitFactionGroup(Target)],
+			["Sex"] = UnitSex(Target),
+			["Guild"] = GuildName,
+			["Race"] = GS_Races[RaceEnglish],
+			["Class"] =  GS_Classes[ClassEnglish],
+			["Spec"] = 1,
+			["Location"] = GS_Zones[currentzone],
+			["Scanned"] = UnitName("player"),
+			["Date"] = GearScore_GetTimeStamp(),
+			["Average"] = floor((LevelTotal / ItemCount)+0.5),
+			["Equip"] = TempEquip
+		}
 	end
 end
 
@@ -592,7 +778,9 @@ function GearScore_HookSetUnit(arg1, arg2)
 		Age = "";
 		if (GS_DisplayFrame:IsVisible()) and GS_DisplayPlayer and UnitName("target") then if GS_DisplayPlayer == UnitName("target") then return; end; end			
 		if ( GS_Data[GetRealmName()].Players[Name] ) then PreviousRecord = GS_Data[GetRealmName()].Players[Name]; end 
-		NotifyInspect("mouseover"); GearScore_GetScore(Name, "mouseover"); --GS_Data[GetRealmName()]["CurrentPlayer"] = GS_Data[GetRealmName()]["Players"][Name]
+		NotifyInspect("mouseover");
+		GearScore_GetScore(Name, "mouseover");
+		--GS_Data[GetRealmName()]["CurrentPlayer"] = GS_Data[GetRealmName()]["Players"][Name]
 		if not ( GearScore_IsRecordTheSame(GS_Data[GetRealmName()].Players[Name], PreviousRecord) ) then GearScore_Send(Name, "ALL"); end
 	end
  	if ( GS_Data[GetRealmName()].Players[Name] ) and ( GS_Data[GetRealmName()].Players[Name].GearScore > 0 ) and ( GS_Settings["Player"] == 1 ) then 
@@ -1487,6 +1675,147 @@ function GS_DecodeStats(Name)
 		return StatTable, RangeCheck
 end
 
+-- Telkar edit here
+function GearScore_CopyRawrXml()
+	StaticPopup_Hide("GearScore_RawrXmlCopyDialog")
+	
+	local Name, Uid
+	local p = GS_Data[GetRealmName()].Players
+	
+	if UnitName("target") then 	-- Has target
+		if UnitIsPlayer("target") then 	-- target is a player
+			
+			if CheckInteractDistance("target",1) then 	-- target player in range
+				Name = UnitName("target")
+				Uid = "target"
+			else 	-- target player OUT OF range
+				if p[UnitName("target")] then
+					Name = UnitName("target")
+					Uid = "none"
+					print(format("RawrXml: Your target '%s' is not in inspect range. Will generate equipment without gems and talents.", UnitName("target")))
+				else
+					print(format("RawrXml: Move closer to inspect your target '%s' at least once.", UnitName("target")))
+					return
+				end
+			end
+		else 	-- target is NOT a player
+			print(format("RawrXml: Target '%s' is not a player.", UnitName("target")))
+			return
+		end
+	elseif GS_NameText:GetText() and p[GS_NameText:GetText()] then
+		if GS_NameText:GetText() == UnitName("player") then
+			Name = UnitName("player")
+			Uid = "player"
+		else
+			Name = GS_NameText:GetText()
+			Uid = "none"
+			print(format("RawrXml: Entry from GS database. Will generate equipment without gems and talents.", UnitName("target")))
+		end
+	end
+	
+	currentRawrXml = format("<Name>%s</Name>", Name)
+	currentRawrXml = currentRawrXml .. format("<Realm>%s</Realm>", GetRealmName())
+	currentRawrXml = currentRawrXml .. "<Region>EU</Region>"
+	
+	local ItemLink, itemId, ench, gem1, gem2, gem3
+	local rawrSlot, rawrItem, classEN, raceEN
+	local itemsOrdered = {}
+	
+	local c = p[Name]
+	if Uid == "none" then 	-- we use stored info
+		if c.Level ~= 80 then
+			print("RawrXml: Only level 80 characters can be exported.")
+			return
+		end
+		classEN = translatorTable[c.Class]
+		raceEN = translatorTable[c.Race]
+		
+		currentRawrXml = currentRawrXml .. format("<Race>%s</Race>", raceEN)
+		currentRawrXml = currentRawrXml .. format("<Class>%s</Class>", classEN)
+		
+		for i = 1, 18 do
+			if ( i ~= 4 )  then
+				
+				ItemLink = c.Equip[i]
+				if ItemLink then
+					rawrItem = ItemLink:gsub(":",".0.0.0.")
+				
+					rawrSlot = format("<%s>%s</%s>", xmlTags[i], rawrItem, xmlTags[i])
+					-- itemsOrdered[xmlRawrOrder[xmlTags[i]]] = rawrSlot
+					
+					currentRawrXml = currentRawrXml .. rawrSlot
+					-- print(i, rawrSlot)
+				end -- if ItemLink
+			end -- if i ~= 4
+		end -- for
+		
+	else 	-- we use inspection info
+		if UnitLevel(Uid) ~= 80 then
+			print("RawrXml: Only level 80 characters can be exported.")
+			return
+		end
+		_, classEN = UnitClass(Uid)
+		_, raceEN = UnitRace(Uid)
+		classEN = translatorTable[classEN]
+		
+		currentRawrXml = currentRawrXml .. format("<Race>%s</Race>", raceEN)
+		currentRawrXml = currentRawrXml .. format("<Class>%s</Class>", classEN)
+		
+		local talents = ""
+		for tabIndex = 1, GetNumTalentTabs(1) do
+		   for talentIndex = 1, GetNumTalents(tabIndex) do
+			  local _, _, _, _, currentRank = GetTalentInfo(tabIndex, talentIndex, 1)
+			  talents = talents .. tostring(currentRank)
+		   end
+		end
+		-- print(talents)
+		currentRawrXml = currentRawrXml .. format("<%sTalents>%s</%sTalents>", classEN, talents, classEN)
+		
+		
+		for i = 1, 18 do
+			if ( i ~= 4 )  then
+				-- rawrItem = "0.0.0.0"
+				
+				ItemLink = GetInventoryItemLink(Uid, i)
+				ItemLink = ItemLink or ""
+				itemId, ench, gem1, gem2, gem3 = strmatch(ItemLink, "\124Hitem:(%d+):(%d+):(%d+):(%d+):(%d+):.+\124h")
+				
+				itemId = tonumber(itemId)
+				if itemId then
+					gem1, gem2, gem3 = tonumber(gem1) or 0, tonumber(gem2) or 0, tonumber(gem3) or 0
+					gem1 = northrendGems[gem1] or 0
+					gem2 = northrendGems[gem2] or 0
+					gem3 = northrendGems[gem3] or 0
+					rawrItem = format("%d.%d.%d.%d.%d", itemId, gem1, gem2, gem3,ench)
+					
+					rawrSlot = format("<%s>%s</%s>", xmlTags[i], rawrItem, xmlTags[i])
+					-- itemsOrdered[
+					-- xmlRawrOrder[
+					-- xmlTags[i]]] = rawrSlot
+					currentRawrXml = currentRawrXml .. rawrSlot
+					-- print(i, rawrSlot)
+				end -- if itemId
+			end -- if ~= 4
+		end -- for
+		
+	end
+	
+	-- for k,v in pairs(itemsOrdered) do
+		-- currentRawrXml = currentRawrXml..v
+	-- end
+	
+	currentRawrXml = xmlPrefix .. currentRawrXml .. xmlPostfix
+	
+	StaticPopupDialogs["GearScore_RawrXmlCopyDialog"].text = format("Rawr entry of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
+	StaticPopup_Show ("GearScore_RawrXmlCopyDialog")
+	
+	
+	
+	if GS_Data[GetRealmName()].Players[Name] then
+		
+	end
+end
+-- Telkar edit here
 
 
 hooksecurefunc("SetItemRef",GearScoreSetItemRef)
