@@ -31,8 +31,9 @@ local orig_print = print
 local print = function(...) orig_print("[GS]", ...) end
 
 local currenExportString
-local xmlPrefix = '<?xml version="1.0" encoding="utf-8"?>\n<Character xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
-local xmlPostfix = '</Character>'
+local exportPrefixRawrXml = '<?xml version="1.0" encoding="utf-8"?>\n<Character xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+local exportFormatRawrXml = '<?xml version="1.0" encoding="utf-8"?>\n<Character xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">%s</Character>'
+local exportFormatRgProfiler = 'https://db.rising-gods.de/?compare=%s&l=%d'
 
 
 StaticPopupDialogs["GearScore_ExportCopyDialog"] = {
@@ -1706,7 +1707,7 @@ function GS_DecodeStats(Name)
 end
 
 -- Telkar edit here
-function GearScore_CopyRawrXml()
+function GearScore_StartExport(export_profile)
 	StaticPopup_Hide("GearScore_ExportCopyDialog")
 	
 	local Name, Uid
@@ -1722,14 +1723,14 @@ function GearScore_CopyRawrXml()
 				if p[UnitName("target")] then
 					Name = UnitName("target")
 					Uid = "none"
-					print(format("RawrXml: Your target '%s' is not in inspect range. Will generate equipment without gems and talents.", UnitName("target")))
+					print(format("Exporter: Your target '%s' is not in inspect range. Will generate equipment without gems and talents.", UnitName("target")))
 				else
-					print(format("RawrXml: Move closer to inspect your target '%s' at least once.", UnitName("target")))
+					print(format("Exporter: Move closer to inspect your target '%s' at least once.", UnitName("target")))
 					return
 				end
 			end
 		else 	-- target is NOT a player
-			print(format("RawrXml: Target '%s' is not a player.", UnitName("target")))
+			print(format("Exporter: Target '%s' is not a player.", UnitName("target")))
 			return
 		end
 	elseif GS_NameText:GetText() and p[GS_NameText:GetText()] then
@@ -1739,9 +1740,103 @@ function GearScore_CopyRawrXml()
 		else
 			Name = GS_NameText:GetText()
 			Uid = "none"
-			print(format("RawrXml: Entry from GS database. Will generate equipment without gems and talents.", UnitName("target")))
+			print(format("Exporter: Entry from GS database. Will generate equipment without gems and talents.", UnitName("target")))
 		end
 	end
+	
+	if Name and Uid then
+		if export_profile == "rg_profiler" then
+			GearScore_CopyExportRgProfiler(Name, Uid)
+		elseif export_profile == "rawr" then
+			GearScore_CopyExportRawrXml(Name, Uid)
+		end
+	else
+		print("Exporter: Invalid Player name or Target!")
+	end
+end
+
+function GearScore_CopyExportRgProfiler(Name, Uid)
+	local ItemLink, itemId, ench, gem1, gem2, gem3
+	local profilerItem, persist
+	currenExportString = ""
+	exportTable = {}
+	
+	local c = GS_Data[GetRealmName()].Players[Name]
+	if Uid == "none" then 	-- we use stored info
+		
+		for i = 1, 18 do
+			if ( i ~= 4 )  then
+				
+				ItemLink = c.Equip[i]
+				if ItemLink and ItemLink ~= "0:0" then
+					profilerItem = ItemLink:gsub(":",".0.")
+					-- currenExportString = currenExportString .. profilerItem .. ":"
+					table.insert(exportTable, profilerItem)
+				end -- if ItemLink
+			end -- if i ~= 4
+		end -- for
+		currenExportString = strjoin(":", unpack(exportTable))
+		wipe(exportTable)
+		currenExportString = format(exportFormatRgProfiler, currenExportString, c.Level)
+		
+	else 	-- we use inspection info
+		
+		for i = 1, 18 do
+			if ( i ~= 4 )  then
+				-- rawrItem = "0.0.0.0"
+				
+				ItemLink = GetInventoryItemLink(Uid, i)
+				ItemLink = ItemLink or ""
+				itemId, ench, gem1, gem2, gem3 = strmatch(ItemLink, "\124Hitem:(%d+):(%d+):(%d+):(%d+):(%d+):.+\124h")
+				
+				itemId = tonumber(itemId)
+				if itemId then
+					ench, gem1, gem2, gem3 = tonumber(ench) or 0, tonumber(gem1) or 0, tonumber(gem2) or 0, tonumber(gem3) or 0
+					gem1 = northrendGems[gem1] or 0
+					gem2 = northrendGems[gem2] or 0
+					gem3 = northrendGems[gem3] or 0
+					profilerItem = ""
+					persist = nil
+					if (gem3 > 0) or persist then
+						persist = 1
+						profilerItem = format(".%d%s", gem3, profilerItem)
+					end
+					if (gem2 > 0) or persist then
+						persist = 1
+						profilerItem = format(".%d%s", gem2, profilerItem)
+					end
+					if (gem1 > 0) or persist then
+						persist = 1
+						profilerItem = format(".%d%s", gem1, profilerItem)
+					end
+					if persist then
+						profilerItem = format(".%d%s", 0, profilerItem)
+					end
+					if (gem1 > 0) or persist then
+						persist = 1
+						profilerItem = format(".%d%s", ench, profilerItem)
+					end
+					if persist then
+						profilerItem = format(".%d%s", 0, profilerItem)
+					end
+					profilerItem = format("%d%s", itemId, profilerItem)
+					
+					table.insert(exportTable, profilerItem)
+				end -- if itemId
+			end -- if ~= 4
+		end -- for
+		currenExportString = strjoin(":", unpack(exportTable))
+		wipe(exportTable)
+		currenExportString = format(exportFormatRgProfiler, currenExportString, UnitLevel(Uid))
+		
+	end
+	
+	StaticPopupDialogs["GearScore_ExportCopyDialog"].text = format("RG-Profiler Export of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
+	StaticPopup_Show ("GearScore_ExportCopyDialog")
+	
+end
+
+function GearScore_CopyExportRawrXml(Name, Uid)
 	
 	currenExportString = format("<Name>%s</Name>", Name)
 	currenExportString = currenExportString .. format("<Realm>%s</Realm>", GetRealmName())
@@ -1749,12 +1844,12 @@ function GearScore_CopyRawrXml()
 	
 	local ItemLink, itemId, ench, gem1, gem2, gem3
 	local rawrSlot, rawrItem, classEN, raceEN
-	local itemsOrdered = {}
+	-- local itemsOrdered = {}
 	
-	local c = p[Name]
+	local c = GS_Data[GetRealmName()].Players[Name]
 	if Uid == "none" then 	-- we use stored info
 		if c.Level ~= 80 then
-			print("RawrXml: Only level 80 characters can be exported.")
+			print("Exporter[RawrXml]: Only level 80 characters can be exported.")
 			return
 		end
 		classEN = translatorTable[c.Class]
@@ -1781,9 +1876,10 @@ function GearScore_CopyRawrXml()
 		
 	else 	-- we use inspection info
 		if UnitLevel(Uid) ~= 80 then
-			print("RawrXml: Only level 80 characters can be exported.")
+			print("Exporter[RawrXml]: Only level 80 characters can be exported.")
 			return
 		end
+		c = nil
 		_, classEN = UnitClass(Uid)
 		_, raceEN = UnitRace(Uid)
 		classEN = translatorTable[classEN]
@@ -1834,16 +1930,12 @@ function GearScore_CopyRawrXml()
 		-- currenExportString = currenExportString..v
 	-- end
 	
-	currenExportString = xmlPrefix .. currenExportString .. xmlPostfix
+	currenExportString = format(exportFormatRawrXml, currenExportString)
 	
-	StaticPopupDialogs["GearScore_ExportCopyDialog"].text = format("Rawr entry of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
+	StaticPopupDialogs["GearScore_ExportCopyDialog"].text = format("RawrXML Export of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
 	StaticPopup_Show ("GearScore_ExportCopyDialog")
 	
 	
-	
-	if GS_Data[GetRealmName()].Players[Name] then
-		
-	end
 end
 -- Telkar edit here
 

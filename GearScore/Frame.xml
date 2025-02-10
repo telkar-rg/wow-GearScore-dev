@@ -494,6 +494,22 @@
 								</Offset>
 							</Anchor>
 						</Anchors>
+						<Scripts>
+							<OnClick>
+								GearScore_StartExport("rg_profiler")
+							</OnClick>
+							<OnEnter>
+								GameTooltip:SetOwner(GS_ExportRgProfiler_Front_Button, "ANCHOR_Right")
+								GameTooltip:ClearLines();
+								GameTooltip:AddLine("Export: RG-Profiler",1,1,1);
+								GameTooltip:AddLine("Creates an URL of the worn");
+								GameTooltip:AddLine("equipment for the RG-Profiler.");
+								GameTooltip:Show()
+							</OnEnter>
+							<OnLeave>
+								GameTooltip:Hide()
+							</OnLeave>
+						</Scripts>
 						<Layers>
 							<Layer level="BORDER">
 								<Texture file="Interface\CHATFRAME\UI-ChatIcon-ScrollDown-Disabled" >
@@ -520,9 +536,20 @@
 						</Anchors>
 						<Scripts>
 							<OnClick>
-								<!-- InviteUnit(GS_DisplayPlayer) -->
-								GearScore_CopyRawrXml()
+								GearScore_StartExport("rawr")
 							</OnClick>
+							<OnEnter>
+								GameTooltip:SetOwner(GS_ExportRawr_Front_Button, "ANCHOR_Right")
+								GameTooltip:ClearLines();
+								GameTooltip:AddLine("Export: Rawr XML",1,1,1);
+								GameTooltip:AddLine("Creates the XML of the");
+								GameTooltip:AddLine("character to be loaded");
+								GameTooltip:AddLine("into Rawr.");
+								GameTooltip:Show()
+							</OnEnter>
+							<OnLeave>
+								GameTooltip:Hide()
+							</OnLeave>
 						</Scripts>
 						<Layers>
 							<Layer level="BORDER">
