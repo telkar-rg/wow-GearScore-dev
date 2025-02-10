@@ -30,20 +30,25 @@
 local orig_print = print
 local print = function(...) orig_print("[GS]", ...) end
 
-local currentRawrXml = "currentRawrXml"
+local currenExportString
 local xmlPrefix = '<?xml version="1.0" encoding="utf-8"?>\n<Character xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
 local xmlPostfix = '</Character>'
 
 
-StaticPopupDialogs["GearScore_RawrXmlCopyDialog"] = {
+StaticPopupDialogs["GearScore_ExportCopyDialog"] = {
 	text = "Ctrl-C to copy - Save as an .xml file",
 	button2 = CLOSE,
 	hasEditBox = 1,
 	hasWideEditBox = 1,
+	timeout = 0,
+	whileDead = 1,
+	hideOnEscape = 1,
+	maxLetters=1024, -- this otherwise gets cached from other dialogs which caps it at 10..20..30...
+	preferredIndex = 3,  -- avoid some UI taint
 	OnShow = function()
 		local editBox = _G[this:GetName().."WideEditBox"]
 		if editBox then
-			editBox:SetText(currentRawrXml)
+			editBox:SetText(currenExportString or "")
 			editBox:SetFocus()
 			editBox:HighlightText(0)
 		end
@@ -54,20 +59,9 @@ StaticPopupDialogs["GearScore_RawrXmlCopyDialog"] = {
 			button:SetPoint("CENTER", editBox, "CENTER", 0, -30)
 		end
 	end,
-	EditBoxOnTextChanged = function(...)
-		local editBox = _G[this:GetName().."WideEditBox"]
-		if editBox then
-			editBox:SetText(currentRawrXml)
-			editBox:SetFocus()
-			editBox:HighlightText(0)
-		end
-	end,
+	-- EditBoxOnTextChanged = function () print("EditBoxOnTextChanged") end,
 	EditBoxOnEscapePressed = function() this:GetParent():Hide() end,
-	timeout = 0,
-	whileDead = 1,
-	hideOnEscape = 1,
-	maxLetters=1024, -- this otherwise gets cached from other dialogs which caps it at 10..20..30...
-	preferredIndex = 3,  -- avoid some UI taint
+	
 }
 
 local xmlTags = {
@@ -347,9 +341,12 @@ function GearScore_OnEvent(GS_Nil, GS_EventName, GS_Prefix, GS_AddonMessage, GS_
        	  	if ( GetGuildInfo("player") ) and ( GS_Settings["Developer"] ~= 1 )then SendAddonMessage( "GSY_Version", GS_Settings["OldVer"], "GUILD"); end
 			-- Telkar edit
 			if ( not GS_Settings["TmogFix"] ) then GS_Settings["TmogFix"] = 1; end -- default active even after upgrading version
+			if ( not GS_Settings["RgProfilerExportActive"] ) then GS_Settings["RgProfilerExportActive"] = -1; end -- default inactive
 			if ( not GS_Settings["RawrExportActive"] ) then GS_Settings["RawrExportActive"] = -1; end -- default inactive
 			
-			if ( GS_Settings["RawrExportActive"] == 1 ) then GS_RawrXmlButton:Show(); else GS_RawrXmlButton:Hide(); end
+			-- if ( GS_Settings["RgProfilerExportActive"] == 1 ) then GS_ExportRawr_Front_Button:Show(); else GS_ExportRawr_Front_Button:Hide(); end
+			-- if ( GS_Settings["RawrExportActive"] == 1 ) then GS_ExportRawr_Front_Button:Show(); else GS_ExportRawr_Front_Button:Hide(); end
+			GearScore_UpdateExportButtons()
         end
         if ( GS_Prefix == "GearScoreRecount" ) then
             local f = CreateFrame("Frame", "GearScoreRecountErrorFrame", UIParent);
@@ -1178,7 +1175,8 @@ function GearScore_ShowOptions()
 	if ( GS_Settings["CHAT"] == 1 ) then GS_ChatCheck:SetChecked(true); else GS_ChatCheck:SetChecked(false); end
 	-- Telkar edit
 	if ( GS_Settings["TmogFix"] == 1 ) then GS_TmogFixCheck:SetChecked(true); else GS_TmogFixCheck:SetChecked(false); end
-	if ( GS_Settings["RawrExportActive"] == 1 ) then GS_RawrXmlShowButtonCheck:SetChecked(true); else GS_RawrXmlShowButtonCheck:SetChecked(false); end
+	if ( GS_Settings["RgProfilerExportActive"] == 1 ) then GS_ExportRgProfiler_ShowButton_Check:SetChecked(true); else GS_ExportRgProfiler_ShowButton_Check:SetChecked(false); end
+	if ( GS_Settings["RawrExportActive"] == 1 ) then GS_ExportRawr_ShowButton_Check:SetChecked(true); else GS_ExportRawr_ShowButton_Check:SetChecked(false); end
 	
 	GS_DatabaseAgeSliderText:SetText("Keep data for: "..(GS_Settings["DatabaseAgeSlider"] or 30).." days.")
 	GS_DatabaseAgeSlider:SetValue(GS_Settings["DatabaseAgeSlider"] or 30)
@@ -1215,7 +1213,9 @@ function GearScore_HideOptions()
 	if ( GS_MasterlootCheck:GetChecked() ) then GS_Settings["ML"] = 1; else GS_Settings["ML"] = -1; end
 	-- Telkar edit
 	if ( GS_TmogFixCheck:GetChecked() ) then GS_Settings["TmogFix"] = 1; else GS_Settings["TmogFix"] = -1; end
-	if ( GS_RawrXmlShowButtonCheck:GetChecked() ) then GS_Settings["RawrExportActive"] = 1; else GS_Settings["RawrExportActive"] = -1; end
+	if ( GS_ExportRgProfiler_ShowButton_Check:GetChecked() ) then GS_Settings["RgProfilerExportActive"] = 1; else GS_Settings["RgProfilerExportActive"] = -1; end
+	if ( GS_ExportRawr_ShowButton_Check:GetChecked() ) then GS_Settings["RawrExportActive"] = 1; else GS_Settings["RawrExportActive"] = -1; end
+	GearScore_UpdateExportButtons()
 	
 	GS_Settings["MinLevel"] = tonumber(GS_LevelEditBox:GetText());
 	GS_Settings["DatabaseAgeSlider"] = ( GS_DatabaseAgeSlider:GetValue() or 30 )
@@ -1229,6 +1229,26 @@ function GearScore_HideOptions()
 		if ( _G["GS_SpecScoreCheck"..i]:GetChecked() ) then GS_Settings["ShowSpecScores"][GearScoreClassSpecList[englishClass][i]] = 1; else GS_Settings["ShowSpecScores"][GearScoreClassSpecList[englishClass][i]] = 0; end
 	end
 	
+	
+end
+
+function GearScore_UpdateExportButtons()
+	
+	if GS_Settings["RgProfilerExportActive"] == 1 then
+		GS_ExportRgProfiler_Front_Button:SetPoint("CENTER","GS_ExportReference_Frame","BOTTOMLEFT", 0, -36)
+		GS_ExportRgProfiler_Front_Button:Show()
+	else
+		GS_ExportRgProfiler_Front_Button:SetPoint("CENTER","GS_ExportReference_Frame","BOTTOMLEFT", 0, 0)
+		GS_ExportRgProfiler_Front_Button:Hide()
+	end
+	
+	if GS_Settings["RawrExportActive"] == 1 then
+		GS_ExportRawr_Front_Button:SetPoint("CENTER","GS_ExportRgProfiler_Front_Button","CENTER", 0, -36)
+		GS_ExportRawr_Front_Button:Show()
+	else
+		GS_ExportRawr_Front_Button:SetPoint("CENTER","GS_ExportRgProfiler_Front_Button","CENTER", 0, 0)
+		GS_ExportRawr_Front_Button:Hide()
+	end
 	
 end
  
@@ -1687,7 +1707,7 @@ end
 
 -- Telkar edit here
 function GearScore_CopyRawrXml()
-	StaticPopup_Hide("GearScore_RawrXmlCopyDialog")
+	StaticPopup_Hide("GearScore_ExportCopyDialog")
 	
 	local Name, Uid
 	local p = GS_Data[GetRealmName()].Players
@@ -1723,9 +1743,9 @@ function GearScore_CopyRawrXml()
 		end
 	end
 	
-	currentRawrXml = format("<Name>%s</Name>", Name)
-	currentRawrXml = currentRawrXml .. format("<Realm>%s</Realm>", GetRealmName())
-	currentRawrXml = currentRawrXml .. "<Region>EU</Region>"
+	currenExportString = format("<Name>%s</Name>", Name)
+	currenExportString = currenExportString .. format("<Realm>%s</Realm>", GetRealmName())
+	currenExportString = currenExportString .. "<Region>EU</Region>"
 	
 	local ItemLink, itemId, ench, gem1, gem2, gem3
 	local rawrSlot, rawrItem, classEN, raceEN
@@ -1740,8 +1760,8 @@ function GearScore_CopyRawrXml()
 		classEN = translatorTable[c.Class]
 		raceEN = translatorTable[c.Race]
 		
-		currentRawrXml = currentRawrXml .. format("<Race>%s</Race>", raceEN)
-		currentRawrXml = currentRawrXml .. format("<Class>%s</Class>", classEN)
+		currenExportString = currenExportString .. format("<Race>%s</Race>", raceEN)
+		currenExportString = currenExportString .. format("<Class>%s</Class>", classEN)
 		
 		for i = 1, 18 do
 			if ( i ~= 4 )  then
@@ -1753,7 +1773,7 @@ function GearScore_CopyRawrXml()
 					rawrSlot = format("<%s>%s</%s>", xmlTags[i], rawrItem, xmlTags[i])
 					-- itemsOrdered[xmlRawrOrder[xmlTags[i]]] = rawrSlot
 					
-					currentRawrXml = currentRawrXml .. rawrSlot
+					currenExportString = currenExportString .. rawrSlot
 					-- print(i, rawrSlot)
 				end -- if ItemLink
 			end -- if i ~= 4
@@ -1768,8 +1788,8 @@ function GearScore_CopyRawrXml()
 		_, raceEN = UnitRace(Uid)
 		classEN = translatorTable[classEN]
 		
-		currentRawrXml = currentRawrXml .. format("<Race>%s</Race>", raceEN)
-		currentRawrXml = currentRawrXml .. format("<Class>%s</Class>", classEN)
+		currenExportString = currenExportString .. format("<Race>%s</Race>", raceEN)
+		currenExportString = currenExportString .. format("<Class>%s</Class>", classEN)
 		
 		local talents = ""
 		for tabIndex = 1, GetNumTalentTabs(1) do
@@ -1779,7 +1799,7 @@ function GearScore_CopyRawrXml()
 		   end
 		end
 		-- print(talents)
-		currentRawrXml = currentRawrXml .. format("<%sTalents>%s</%sTalents>", classEN, talents, classEN)
+		currenExportString = currenExportString .. format("<%sTalents>%s</%sTalents>", classEN, talents, classEN)
 		
 		
 		for i = 1, 18 do
@@ -1802,7 +1822,7 @@ function GearScore_CopyRawrXml()
 					-- itemsOrdered[
 					-- xmlRawrOrder[
 					-- xmlTags[i]]] = rawrSlot
-					currentRawrXml = currentRawrXml .. rawrSlot
+					currenExportString = currenExportString .. rawrSlot
 					-- print(i, rawrSlot)
 				end -- if itemId
 			end -- if ~= 4
@@ -1811,13 +1831,13 @@ function GearScore_CopyRawrXml()
 	end
 	
 	-- for k,v in pairs(itemsOrdered) do
-		-- currentRawrXml = currentRawrXml..v
+		-- currenExportString = currenExportString..v
 	-- end
 	
-	currentRawrXml = xmlPrefix .. currentRawrXml .. xmlPostfix
+	currenExportString = xmlPrefix .. currenExportString .. xmlPostfix
 	
-	StaticPopupDialogs["GearScore_RawrXmlCopyDialog"].text = format("Rawr entry of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
-	StaticPopup_Show ("GearScore_RawrXmlCopyDialog")
+	StaticPopupDialogs["GearScore_ExportCopyDialog"].text = format("Rawr entry of '%s'\nCtrl-C to copy - Save as an .xml file", Name)
+	StaticPopup_Show ("GearScore_ExportCopyDialog")
 	
 	
 	
