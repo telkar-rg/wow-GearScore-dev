@@ -1874,7 +1874,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
-				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.17 (Release)" justifyH="LEFT">
+				<FontString name="GS_FontString1" inherits="GameFontNormal" text="GearScore Version 3.1.17 +2b" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="301" y="20"/>
 					</Size>
@@ -2060,7 +2060,7 @@
 				</FontString>
 				
 				<!-- Telkar edit here -->
-				<FontString name="GS_Enable_TmogFix_Text" inherits="GameFontNormal" text="|cFF40E0E0Transmog Soft-Fix|r" justifyH="LEFT">
+				<FontString name="GS_Enable_TmogFix_Text" inherits="GameFontNormal" text="|cFFE04040Transmog Soft-Fix|r" justifyH="LEFT">
 					<Size>
 						<AbsDimension x="264" y="20"/>
 					</Size>
